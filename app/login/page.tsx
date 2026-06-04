@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const login = async () => {
@@ -16,9 +18,11 @@ export default function LoginPage() {
       return
     }
 
+    setLoading(true)
+
     let emailToUse = identifier
 
-    // 🔍 If username entered → convert to email
+    // username → email
     if (!identifier.includes('@')) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -28,6 +32,7 @@ export default function LoginPage() {
 
       if (!profile) {
         alert('User not found')
+        setLoading(false)
         return
       }
 
@@ -36,53 +41,103 @@ export default function LoginPage() {
 
     const { error } = await supabase.auth.signInWithPassword({
       email: emailToUse,
-      password
+      password,
     })
 
     if (error) {
       alert(error.message)
+      setLoading(false)
     } else {
       router.push('/')
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-md w-80">
-        <h1 className="text-xl font-bold mb-4 text-center">Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4">
 
-        <input
-          className="w-full p-2 border rounded mb-3"
-          placeholder="Email or Username"
-          onChange={(e) => setIdentifier(e.target.value)}
-        />
+      {/* 🔥 CARD */}
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-5">
 
-        <input
-          type="password"
-          className="w-full p-2 border rounded mb-4"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {/* 🔥 HEADER / BRAND */}
+        <div className="flex flex-col items-center gap-2">
 
+          <Image
+            src="/FIFA26.png"
+            alt="World Cup"
+            width={40}
+            height={40}
+          />
+
+          <h1 className="text-xl font-semibold">
+            FIFA WC 2026
+          </h1>
+
+          <p className="text-sm text-gray-500">
+            Sign in to continue
+          </p>
+        </div>
+
+        {/* 🔥 INPUTS */}
+        <div className="space-y-3">
+
+          <input
+            className="
+              w-full h-12 px-3
+              border rounded-lg
+              text-sm
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "
+            placeholder="Email or Username"
+            onChange={(e) => setIdentifier(e.target.value)}
+          />
+
+          <input
+            type="password"
+            className="
+              w-full h-12 px-3
+              border rounded-lg
+              text-sm
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {/* 🔥 LOGIN BUTTON */}
         <button
           onClick={login}
-          className="w-full bg-blue-600 text-white py-2 rounded mb-3 hover:bg-blue-700"
+          disabled={loading}
+          className="
+            w-full h-12
+            bg-blue-600 text-white
+            rounded-lg font-medium
+            active:scale-95 transition
+            disabled:opacity-60
+          "
         >
-          Login
+          {loading ? 'Signing in...' : 'Login'}
         </button>
 
-        <p className="text-sm text-center">
-          Don’t have an account?{' '}
-          <Link href="/register" className="text-blue-600">
-            Register
-          </Link>
-        </p>
+        {/* 🔥 LINKS */}
+        <div className="text-sm text-center space-y-2">
 
-        <p className="text-sm text-center mt-2">
-          <Link href="/forgot-password" className="text-blue-600">
+          <p>
+            Don’t have an account?{' '}
+            <Link href="/register" className="text-blue-600 font-medium">
+              Register
+            </Link>
+          </p>
+
+          <Link
+            href="/forgot-password"
+            className="text-blue-600 block"
+          >
             Forgot Password?
           </Link>
-        </p>
+
+        </div>
+
       </div>
     </div>
   )

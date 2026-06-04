@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
@@ -32,44 +31,47 @@ export default function Navbar() {
   }
 
   return (
-    <div className="flex justify-between items-center px-6 py-3 border-b bg-white">
-      <div className="
-        sticky top-0 z-50
-        flex items-center justify-between
-        px-3 py-2
-        bg-white border-b
-      ">
+    <div className="
+      sticky top-0 z-50
+      bg-white border-b
+      px-3 py-2
+      flex items-center justify-between
+    ">
+
+      {/* LEFT: LOGO + TITLE */}
+      <div className="flex items-center gap-2">
         <Image
           src="/FIFA26.png"
           alt="World Cup"
-          width={28}
-          height={28}
+          width={24}
+          height={24}
         />
-        <span className="font-bold text-lg sm:text-xl">
+        <span className="font-semibold text-sm sm:text-base">
           FIFA WC 2026
         </span>
       </div>
 
-      <div className="
-        sticky top-0 z-50
-        flex items-center justify-between
-        px-3 py-2
-        bg-white border-b
-      ">
-        <Link href="/">Matches</Link>
-        <Link href="/leaderboard">Leaderboard</Link>
-        <Link href="/admin">Admin</Link>
+      {/* RIGHT: USER + LOGOUT */}
+      <div className="flex items-center gap-2">
 
-        <span className="text-sm text-gray-600">
+        {/* Username (truncate to avoid overflow) */}
+        <span className="text-xs sm:text-sm text-gray-600 max-w-[80px] truncate">
           👤 {username}
         </span>
 
+        {/* Logout button */}
         <button
           onClick={handleLogout}
-          className="text-red-500"
+          className="
+            text-xs sm:text-sm
+            text-red-500
+            px-2 py-1 rounded
+            active:scale-95 transition
+          "
         >
           Logout
         </button>
+
       </div>
     </div>
   )

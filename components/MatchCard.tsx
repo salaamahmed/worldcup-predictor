@@ -100,7 +100,7 @@ export default function MatchCard({
     match.status === 'finished' ||
     new Date(match.kickoff_time) <= new Date()
 
-  // 🔥 RESULT LOGIC
+  // 🔥 RESULT COLOR
   function getResultColor() {
     if (!prediction || match.status !== 'finished') return ''
 
@@ -125,23 +125,29 @@ export default function MatchCard({
     <Link href={`/match/${match.id}`}>
       <div
         className={`
-        relative
-        bg-white rounded-xl border shadow-sm p-3 sm:p-4
-        hover:shadow-lg hover:-translate-y-1
-        transition duration-200 cursor-pointer
-        ${getResultColor()}
-      `}
+          relative
+          bg-white rounded-xl border shadow-sm
+          p-3 sm:p-4
+          active:scale-[0.98]
+          hover:shadow-md transition
+          ${getResultColor()}
+        `}
       >
 
-        {/* 🔒 LOCK OVERLAY */}
+        {/* 🔒 LOCK OVERLAY (lighter + cleaner) */}
         {isLocked && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-2xl flex items-center justify-center text-sm font-semibold text-gray-600">
+          <div className="
+            absolute inset-0 rounded-xl
+            bg-white/50 backdrop-blur-[1px]
+            flex items-center justify-center
+            text-xs font-semibold text-gray-600
+          ">
             🔒 Locked
           </div>
         )}
 
-        {/* TOP */}
-        <div className="flex justify-between text-xs text-gray-500 mb-3">
+        {/* TOP INFO */}
+        <div className="flex justify-between text-[11px] text-gray-500 mb-2">
           <span>
             {date.toLocaleDateString()} •{' '}
             {date.toLocaleTimeString([], {
@@ -152,84 +158,82 @@ export default function MatchCard({
 
           <span
             className={`
-            text-xs font-semibold px-2 py-1 rounded
-            ${
-              match.status === 'finished'
-                ? 'bg-green-100 text-green-600'
-                : 'bg-blue-100 text-blue-600'
-            }
-          `}
+              text-[10px] font-semibold px-2 py-[2px] rounded
+              ${
+                match.status === 'finished'
+                  ? 'bg-green-100 text-green-600'
+                  : 'bg-blue-100 text-blue-600'
+              }
+            `}
           >
             {match.status}
           </span>
         </div>
 
         {/* TEAMS */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between">
 
-          <div className="flex flex-col items-center gap-1 w-1/3">
+          {/* HOME */}
+          <div className="flex flex-col items-center w-1/3 gap-1">
             <Image
               src={getFlag(match.home_team)}
               alt={match.home_team}
               width={32}
               height={32}
-              className="rounded-full sm:w-10 sm:h-10"
+              className="rounded-full"
             />
-            <span className="text-sm font-medium text-center">
+            <span className="text-xs sm:text-sm text-center truncate max-w-[80px]">
               {match.home_team}
             </span>
           </div>
 
+          {/* SCORE / VS */}
           <div className="text-center">
             {match.status === 'finished' ? (
-              <div className="font-bold text-lg">
+              <div className="font-bold text-base sm:text-lg">
                 {match.home_score} - {match.away_score}
               </div>
             ) : (
-              <div className="text-center">
-                {match.status === 'finished' ? (
-                  <div className="font-bold text-base sm:text-lg">
-                    {match.home_score} - {match.away_score}
-                  </div>
-                ) : (
-                  <div className="text-gray-400 font-bold text-sm">VS</div>
-                )}
+              <div className="text-gray-400 font-bold text-xs sm:text-sm">
+                VS
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2">
+          {/* AWAY */}
+          <div className="flex flex-col items-center w-1/3 gap-1">
             <Image
               src={getFlag(match.away_team)}
               alt={match.away_team}
-              width={40}
-              height={40}
+              width={32}
+              height={32}
               className="rounded-full"
             />
-            <span className="text-sm font-medium text-center">
+            <span className="text-xs sm:text-sm text-center truncate max-w-[80px]">
               {match.away_team}
             </span>
           </div>
 
         </div>
 
-        {/* 🔥 PREDICTION PREVIEW */}
+        {/* 🔥 PREDICTION */}
         {prediction && (
-          <div className="mt-4 text-center border-t pt-3">
-            <div className="text-xs text-gray-400">
+          <div className="mt-3 pt-2 border-t text-center">
+
+            <div className="text-[10px] text-gray-400">
               Your prediction
             </div>
 
-            <div className="font-semibold text-gray-800">
+            <div className="font-semibold text-sm">
               {prediction.predicted_home} - {prediction.predicted_away}
             </div>
 
-            {/* 🏆 POINTS */}
             {match.status === 'finished' && (
-              <div className="text-xs mt-1 font-semibold text-blue-600">
+              <div className="text-[11px] mt-1 font-semibold text-blue-600">
                 {prediction.points ?? 0} pts
               </div>
             )}
+
           </div>
         )}
 

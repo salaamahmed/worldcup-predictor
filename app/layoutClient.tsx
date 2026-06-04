@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -39,14 +40,90 @@ export default function LayoutClient({
     }
 
     checkUser()
-  }, [pathname, router, isAuthPage]) // ✅ FIXED dependencies
+  }, [pathname, router, isAuthPage])
 
-  if (loading) return null
+  // 🔥 Better loading UX (prevents blank flash)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500">
+        Loading...
+      </div>
+    )
+  }
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
+
+      {/* 🔝 TOP NAVBAR */}
       {!isAuthPage && user && <Navbar />}
-      {children}
-    </>
+
+      {/* 📄 PAGE CONTENT */}
+      <main className="pb-20 px-3 sm:px-6">
+        {children}
+      </main>
+
+      {/* 🔻 BOTTOM NAVIGATION (MOBILE APP FEEL) */}
+      {!isAuthPage && user && (
+        <BottomNav pathname={pathname} />
+      )}
+    </div>
+  )
+}
+
+
+
+
+
+
+// 🔥 NEW COMPONENT: Bottom Navigation
+function BottomNav({ pathname }: { pathname: string }) {
+  return (
+    <div className="
+      fixed bottom-0 left-0 right-0
+      bg-white border-t
+      flex justify-around items-center
+      py-2 z-50
+    ">
+
+      {/* HOME */}
+      <Link
+        href="/"
+        className={`flex flex-col items-center text-xs ${
+          pathname === '/'
+            ? 'text-blue-600 font-semibold'
+            : 'text-gray-500'
+        }`}
+      >
+        <span className="text-lg">🏠</span>
+        Home
+      </Link>
+
+      {/* LEADERBOARD */}
+      <Link
+        href="/leaderboard"
+        className={`flex flex-col items-center text-xs ${
+          pathname === '/leaderboard'
+            ? 'text-blue-600 font-semibold'
+            : 'text-gray-500'
+        }`}
+      >
+        <span className="text-lg">🏆</span>
+        Leaderboard
+      </Link>
+
+      {/* ADMIN */}
+      <Link
+        href="/admin"
+        className={`flex flex-col items-center text-xs ${
+          pathname === '/admin'
+            ? 'text-blue-600 font-semibold'
+            : 'text-gray-500'
+        }`}
+      >
+        <span className="text-lg">⚙️</span>
+        Admin
+      </Link>
+
+    </div>
   )
 }

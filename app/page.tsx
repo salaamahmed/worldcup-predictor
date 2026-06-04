@@ -22,23 +22,10 @@ type Prediction = {
 
 export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([])
-
-  useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from('matches')
-        .select('*')
-        .order('kickoff_time')
-
-      setMatches(data || [])
-    }
-
-    load()
-  }, [])
-
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [userId, setUserId] = useState<string | null>(null)
 
+  // 🔥 SINGLE CLEAN LOAD (removed duplicate useEffect)
   useEffect(() => {
     async function load() {
       const { data: userData } = await supabase.auth.getUser()
@@ -66,35 +53,60 @@ export default function MatchesPage() {
   }, [])
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto py-4">
 
-      <h1 className="text-2xl font-bold mb-6 text-center flex items-center justify-center gap-1 whitespace-nowrap">
-        <span>Matches</span>
+      {/* 🔥 HEADER (MOBILE OPTIMIZED) */}
+      <div className="mb-4 flex items-center justify-center gap-2">
+
+        <h1 className="text-lg sm:text-xl font-semibold">
+          Matches
+        </h1>
 
         <Image
           src="/ball.png"
           alt="Match Ball"
-          width={26}
-          height={26}
-          className="inline-block drop-shadow animate-pulse"
+          width={22}
+          height={22}
+          className="drop-shadow animate-pulse"
         />
-      </h1>
+      </div>
 
+      {/* 🔥 GRID (MOBILE-FIRST) */}
       <div className="
         grid 
         grid-cols-1 
         sm:grid-cols-2 
         lg:grid-cols-3 
-        gap-4
+        gap-3 sm:gap-4
       ">
         {matches.map((match) => (
           <MatchCard
             key={match.id}
             match={match}
-            prediction={predictions.find(p => p.match_id === match.id && p.user_id === userId)}
+            prediction={predictions.find(
+              (p) => p.match_id === match.id && p.user_id === userId
+            )}
           />
         ))}
       </div>
+
+      {/* 🔥 FLOATING ACTION BUTTON */}
+      <button
+        onClick={() =>
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+        className="
+          fixed bottom-20 right-4
+          bg-blue-600 text-white
+          w-12 h-12 rounded-full
+          flex items-center justify-center
+          text-xl
+          shadow-lg
+          active:scale-95 transition
+        "
+      >
+        ↑
+      </button>
 
     </div>
   )

@@ -27,70 +27,20 @@ type Prediction = {
 
 function getFlag(team: string) {
   const map: Record<string, string> = {
-    // Americas
-    Mexico: 'mx',
-    Canada: 'ca',
-    USA: 'us',
-    Brazil: 'br',
-    Argentina: 'ar',
-    Uruguay: 'uy',
-    Paraguay: 'py',
-    Chile: 'cl',
-    Colombia: 'co',
-    Peru: 'pe',
-    Haiti: 'ht',
-
-    // Africa
-    'South Africa': 'za',
-    Morocco: 'ma',
-    Tunisia: 'tn',
-    Senegal: 'sn',
-    Ghana: 'gh',
-    Nigeria: 'ng',
-
-    // Asia
-    'Korea Republic': 'kr',
-    Japan: 'jp',
-    China: 'cn',
-    Iran: 'ir',
-    Qatar: 'qa',
-    'Saudi Arabia': 'sa',
-    Australia: 'au',
-
-    // Europe
-    Czechia: 'cz',
-    Germany: 'de',
-    France: 'fr',
-    Spain: 'es',
-    Italy: 'it',
-    Netherlands: 'nl',
-    Belgium: 'be',
-    Portugal: 'pt',
-    Switzerland: 'ch',
-    Croatia: 'hr',
-    'Bosnia and Herzegovina': 'ba',
-    Scotland: 'gb-sct',
-    Türkiye: 'tr',
-
-    //
-    Curaçao: 'cw',
-    "Côte d'Ivoire": 'ci',
-    Ecuador: 'ec',
-    Sweden: 'se',
-    Egypt: 'eg',
-    'Cabo Verde': 'cv',
-    'IR Iran': 'ir',
-    'New Zealand': 'nz',
-    Iraq: 'iq',
-    Norway: 'no',
-    Algeria: 'dz',
-    Austria: 'at',
-    Jordan: 'jo',
-    'Congo DR': 'cg',
-    England: 'gb-eng',
-    Panama: 'pa',
-    Uzbekistan: 'uz',
-
+    Mexico: 'mx', Canada: 'ca', USA: 'us', Brazil: 'br', Argentina: 'ar',
+    Uruguay: 'uy', Paraguay: 'py', Chile: 'cl', Colombia: 'co', Peru: 'pe',
+    Haiti: 'ht', 'South Africa': 'za', Morocco: 'ma', Tunisia: 'tn',
+    Senegal: 'sn', Ghana: 'gh', Nigeria: 'ng', 'Korea Republic': 'kr',
+    Japan: 'jp', China: 'cn', Iran: 'ir', Qatar: 'qa', 'Saudi Arabia': 'sa',
+    Australia: 'au', Czechia: 'cz', Germany: 'de', France: 'fr', Spain: 'es',
+    Italy: 'it', Netherlands: 'nl', Belgium: 'be', Portugal: 'pt',
+    Switzerland: 'ch', Croatia: 'hr', 'Bosnia and Herzegovina': 'ba',
+    Scotland: 'gb-sct', Türkiye: 'tr', Curaçao: 'cw',
+    "Côte d'Ivoire": 'ci', Ecuador: 'ec', Sweden: 'se', Egypt: 'eg',
+    'Cabo Verde': 'cv', 'IR Iran': 'ir', 'New Zealand': 'nz',
+    Iraq: 'iq', Norway: 'no', Algeria: 'dz', Austria: 'at',
+    Jordan: 'jo', 'Congo DR': 'cg', England: 'gb-eng',
+    Panama: 'pa', Uzbekistan: 'uz',
   }
 
   return `https://flagcdn.com/w40/${map[team] || 'un'}.png`
@@ -146,14 +96,12 @@ export default function MatchDetails() {
     load()
   }, [id])
 
-  // countdown
+  // 🔥 Countdown (cleaner)
   useEffect(() => {
     if (!match?.kickoff_time) return
 
     const interval = setInterval(() => {
-      const now = new Date().getTime()
-      const kickoff = new Date(match.kickoff_time).getTime()
-      const diff = kickoff - now
+      const diff = new Date(match.kickoff_time).getTime() - Date.now()
 
       if (diff <= 0) {
         setTimeLeft('🔒 Locked')
@@ -163,9 +111,8 @@ export default function MatchDetails() {
 
       const h = Math.floor(diff / (1000 * 60 * 60))
       const m = Math.floor((diff / (1000 * 60)) % 60)
-      const s = Math.floor((diff / 1000) % 60)
 
-      setTimeLeft(`${h}h ${m}m ${s}s`)
+      setTimeLeft(`${h}h ${m}m`)
     }, 1000)
 
     return () => clearInterval(interval)
@@ -190,9 +137,7 @@ export default function MatchDetails() {
           predicted_home: Number(home),
           predicted_away: Number(away),
         },
-        {
-          onConflict: 'user_id,match_id',
-        }
+        { onConflict: 'user_id,match_id' }
       )
 
     if (error) {
@@ -217,28 +162,30 @@ export default function MatchDetails() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-3 py-4">
+    <div className="max-w-md mx-auto px-3 py-4 space-y-4">
 
-      {/* 🔥 MATCH HEADER */}
+      {/* 🔥 MATCH HEADER (COMPACT) */}
       {match && (
-        <div className="bg-white rounded-2xl shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4">
 
           <div className="flex items-center justify-between">
 
             {/* HOME */}
             <div className="flex flex-col items-center w-1/3">
-              <Image src={getFlag(match.home_team)} alt="" width={48} height={48} className="rounded-full" />
-              <span className="mt-2 font-semibold text-center">{match.home_team}</span>
+              <Image src={getFlag(match.home_team)} alt="" width={40} height={40} className="rounded-full" />
+              <span className="mt-1 text-xs font-medium text-center truncate">
+                {match.home_team}
+              </span>
             </div>
 
             {/* CENTER */}
             <div className="text-center">
               {match.status === 'finished' ? (
-                <div className="text-2xl font-bold">
+                <div className="text-xl font-bold">
                   {match.home_score} - {match.away_score}
                 </div>
               ) : (
-                <div className="text-gray-400 font-bold">VS</div>
+                <div className="text-gray-400 font-bold text-sm">VS</div>
               )}
 
               <div className="text-xs text-orange-500 mt-1">
@@ -248,8 +195,10 @@ export default function MatchDetails() {
 
             {/* AWAY */}
             <div className="flex flex-col items-center w-1/3">
-              <Image src={getFlag(match.away_team)} alt="" width={48} height={48} className="rounded-full" />
-              <span className="mt-2 font-semibold text-center">{match.away_team}</span>
+              <Image src={getFlag(match.away_team)} alt="" width={40} height={40} className="rounded-full" />
+              <span className="mt-1 text-xs font-medium text-center truncate">
+                {match.away_team}
+              </span>
             </div>
 
           </div>
@@ -257,10 +206,10 @@ export default function MatchDetails() {
       )}
 
       {/* 🔥 INPUT CARD */}
-      <div className="bg-white border rounded-2xl p-5 shadow-sm">
+      <div className="bg-white border rounded-xl p-4 shadow-sm">
 
-        <h2 className="font-semibold mb-4 text-center">
-          {existing ? 'Update Prediction' : 'Submit Prediction'}
+        <h2 className="text-sm font-semibold mb-3 text-center">
+          {existing ? 'Update Prediction' : 'Make Prediction'}
         </h2>
 
         <div className="flex items-center justify-center gap-3 mb-4">
@@ -268,71 +217,64 @@ export default function MatchDetails() {
             value={home}
             onChange={(e) => setHome(e.target.value)}
             type="number"
-            className="w-20 p-2 border rounded-lg text-center text-lg"
+            className="w-14 h-12 border rounded-lg text-center text-lg"
           />
           <span className="font-bold">-</span>
           <input
             value={away}
             onChange={(e) => setAway(e.target.value)}
             type="number"
-            className="w-20 p-2 border rounded-lg text-center text-lg"
+            className="w-14 h-12 border rounded-lg text-center text-lg"
           />
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={saving || isLocked}
-          className={`w-full py-3 rounded-xl text-white font-medium transition
+          className={`w-full py-3 rounded-lg text-white font-medium active:scale-95 transition
             ${
               isLocked
-                ? 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-gray-400'
                 : 'bg-blue-600 hover:bg-blue-700'
             }`}
         >
           {isLocked
-            ? 'Prediction locked'
+            ? 'Locked'
             : saving
             ? 'Saving...'
             : existing
-            ? 'Update Prediction'
-            : 'Submit Prediction'}
+            ? 'Update'
+            : 'Submit'}
         </button>
       </div>
 
-      {/* TOAST */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow">
-          {toast}
-        </div>
-      )}
-
-      {/* 🔥 PREDICTIONS */}
+      {/* 🔥 PREDICTIONS LIST */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">Predictions</h2>
+        <h2 className="text-sm font-semibold mb-2">Predictions</h2>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {predictions.map((p, i) => {
             const isMine = p.user_id === userId
 
             return (
               <div
                 key={p.id}
-                className={`flex justify-between items-center p-4 rounded-xl border bg-white
+                className={`flex justify-between items-center p-3 rounded-lg border bg-white text-sm
                   ${isMine ? 'border-green-500 bg-green-50' : ''}`}
               >
                 <div>
-                  <div className="font-medium">
+                  <div className="font-medium text-xs">
                     #{i + 1} {p.username}
                   </div>
 
                   {isMine && (
-                    <div className="text-xs text-green-600">
-                      Your prediction
+                    <div className="text-[10px] text-green-600">
+                      You
                     </div>
                   )}
                 </div>
 
-                <div className="font-bold text-lg">
+                <div className="font-semibold">
                   {p.predicted_home} - {p.predicted_away}
                 </div>
               </div>
@@ -340,6 +282,13 @@ export default function MatchDetails() {
           })}
         </div>
       </div>
+
+      {/* 🔥 TOAST (SAFE ABOVE NAVBAR) */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm shadow">
+          {toast}
+        </div>
+      )}
 
     </div>
   )
