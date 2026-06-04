@@ -217,7 +217,7 @@ export default function MatchDetails() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6">
+    <div className="max-w-md mx-auto px-3 py-4">
 
       {/* 🔥 MATCH HEADER */}
       {match && (

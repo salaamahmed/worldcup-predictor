@@ -9,7 +9,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LayoutClient>{children}</LayoutClient>
+        <div className="px-3 sm:px-6">
+          <LayoutClient>{children}</LayoutClient>
+        </div>
       </body>
     </html>
   )

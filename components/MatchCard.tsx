@@ -126,7 +126,7 @@ export default function MatchCard({
       <div
         className={`
         relative
-        bg-white rounded-2xl border shadow-sm p-5
+        bg-white rounded-xl border shadow-sm p-3 sm:p-4
         hover:shadow-lg hover:-translate-y-1
         transition duration-200 cursor-pointer
         ${getResultColor()}
@@ -165,15 +165,15 @@ export default function MatchCard({
         </div>
 
         {/* TEAMS */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
 
           <div className="flex flex-col items-center gap-1 w-1/3">
             <Image
               src={getFlag(match.home_team)}
               alt={match.home_team}
-              width={40}
-              height={40}
-              className="rounded-full"
+              width={32}
+              height={32}
+              className="rounded-full sm:w-10 sm:h-10"
             />
             <span className="text-sm font-medium text-center">
               {match.home_team}
@@ -186,11 +186,19 @@ export default function MatchCard({
                 {match.home_score} - {match.away_score}
               </div>
             ) : (
-              <div className="text-gray-400 font-bold text-sm">VS</div>
+              <div className="text-center">
+                {match.status === 'finished' ? (
+                  <div className="font-bold text-base sm:text-lg">
+                    {match.home_score} - {match.away_score}
+                  </div>
+                ) : (
+                  <div className="text-gray-400 font-bold text-sm">VS</div>
+                )}
+              </div>
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-1 w-1/3">
+          <div className="flex items-center justify-between gap-2">
             <Image
               src={getFlag(match.away_team)}
               alt={match.away_team}

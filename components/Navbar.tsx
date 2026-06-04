@@ -33,19 +33,29 @@ export default function Navbar() {
 
   return (
     <div className="flex justify-between items-center px-6 py-3 border-b bg-white">
-      <div className="flex items-center gap-2">
+      <div className="
+        sticky top-0 z-50
+        flex items-center justify-between
+        px-3 py-2
+        bg-white border-b
+      ">
         <Image
           src="/FIFA26.png"
           alt="World Cup"
           width={28}
           height={28}
         />
-        <span className="font-bold text-lg">
+        <span className="font-bold text-lg sm:text-xl">
           FIFA WC 2026
         </span>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="
+        sticky top-0 z-50
+        flex items-center justify-between
+        px-3 py-2
+        bg-white border-b
+      ">
         <Link href="/">Matches</Link>
         <Link href="/leaderboard">Leaderboard</Link>
         <Link href="/admin">Admin</Link>

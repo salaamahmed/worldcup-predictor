@@ -33,35 +33,37 @@ export default function LeaderboardPage() {
   }, [])
 
   return (
-    <div className="max-w-xl mx-auto p-4">
+    <div className="overflow-x-auto">
+      <div className="max-w-xl mx-auto p-4">
 
-      <h1 className="text-2xl font-bold mb-6">Leaderboard 🏆</h1>
+        <h1 className="text-2xl font-bold mb-6">Leaderboard 🏆</h1>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : rows.length === 0 ? (
-        <p>No data yet</p>
-      ) : (
-        rows.map((r, i) => (
-          <div
-            key={r.user_id}
-            className="bg-white p-4 rounded shadow mb-3 flex justify-between"
-          >
-            <div>
-              <div className="font-bold">
-                #{i + 1} {r.username ?? 'Unknown'}
+        {loading ? (
+          <p>Loading...</p>
+        ) : rows.length === 0 ? (
+          <p>No data yet</p>
+        ) : (
+          rows.map((r, i) => (
+            <div
+              key={r.user_id}
+              className="bg-white p-4 rounded shadow mb-3 flex justify-between"
+            >
+              <div>
+                <div className="font-bold">
+                  #{i + 1} {r.username ?? 'Unknown'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  Exact scores: {r.exact_scores}
+                </div>
               </div>
-              <div className="text-sm text-gray-500">
-                Exact scores: {r.exact_scores}
+
+              <div className="text-lg font-bold">
+                {r.total_points} pts
               </div>
             </div>
-
-            <div className="text-lg font-bold">
-              {r.total_points} pts
-            </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
     </div>
   )
 }
