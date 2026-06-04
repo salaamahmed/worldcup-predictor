@@ -96,7 +96,7 @@ export default function MatchDetails() {
     load()
   }, [id])
 
-  // 🔥 Countdown (cleaner)
+  // countdown
   useEffect(() => {
     if (!match?.kickoff_time) return
 
@@ -124,6 +124,12 @@ export default function MatchDetails() {
     match ? new Date(match.kickoff_time) <= new Date() : false
 
   async function handleSubmit() {
+    // 🔥 CRITICAL FIX
+    if (isLocked) {
+      setToast('Prediction locked 🔒')
+      return
+    }
+
     if (!home || !away || !userId) return
 
     setSaving(true)
@@ -164,13 +170,10 @@ export default function MatchDetails() {
   return (
     <div className="max-w-md mx-auto px-3 py-4 space-y-4">
 
-      {/* 🔥 MATCH HEADER (COMPACT) */}
       {match && (
         <div className="bg-white rounded-xl shadow-sm p-4">
-
           <div className="flex items-center justify-between">
 
-            {/* HOME */}
             <div className="flex flex-col items-center w-1/3">
               <Image src={getFlag(match.home_team)} alt="" width={40} height={40} className="rounded-full" />
               <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
@@ -178,7 +181,6 @@ export default function MatchDetails() {
               </span>
             </div>
 
-            {/* CENTER */}
             <div className="text-center">
               {match.status === 'finished' ? (
                 <div className="text-2xl font-bold text-gray-900">
@@ -187,13 +189,11 @@ export default function MatchDetails() {
               ) : (
                 <div className="text-gray-400 font-bold text-sm">VS</div>
               )}
-
               <div className="text-sm font-medium text-orange-600">
                 {timeLeft}
               </div>
             </div>
 
-            {/* AWAY */}
             <div className="flex flex-col items-center w-1/3">
               <Image src={getFlag(match.away_team)} alt="" width={40} height={40} className="rounded-full" />
               <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
@@ -205,7 +205,6 @@ export default function MatchDetails() {
         </div>
       )}
 
-      {/* 🔥 INPUT CARD */}
       <div className="bg-white border rounded-xl p-4 shadow-sm">
 
         <h2 className="text-sm font-semibold mb-3 text-center">
@@ -232,11 +231,8 @@ export default function MatchDetails() {
           onClick={handleSubmit}
           disabled={saving || isLocked}
           className={`w-full py-3 rounded-lg text-white font-medium active:scale-95 transition
-            ${
-              isLocked
-                ? 'bg-gray-400'
-                : 'bg-blue-700 hover:bg-blue-800'
-            }`}
+            ${isLocked ? 'bg-gray-400' : 'bg-blue-700 hover:bg-blue-800'}
+          `}
         >
           {isLocked
             ? 'Locked'
@@ -248,7 +244,6 @@ export default function MatchDetails() {
         </button>
       </div>
 
-      {/* 🔥 PREDICTIONS LIST */}
       <div>
         <h2 className="text-sm font-semibold mb-2">Predictions</h2>
 
@@ -266,7 +261,6 @@ export default function MatchDetails() {
                   <div className="font-medium text-xs">
                     #{i + 1} {p.username}
                   </div>
-
                   {isMine && (
                     <div className="text-[10px] text-green-600">
                       You
@@ -283,7 +277,6 @@ export default function MatchDetails() {
         </div>
       </div>
 
-      {/* 🔥 TOAST (SAFE ABOVE NAVBAR) */}
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm shadow">
           {toast}
