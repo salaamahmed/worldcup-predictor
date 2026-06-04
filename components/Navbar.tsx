@@ -46,7 +46,7 @@ export default function Navbar() {
           width={24}
           height={24}
         />
-        <span className="font-semibold text-sm sm:text-base">
+        <span className="font-bold text-base sm:text-lg text-gray-900">
           FIFA WC 2026
         </span>
       </div>
@@ -55,7 +55,7 @@ export default function Navbar() {
       <div className="flex items-center gap-2">
 
         {/* Username (truncate to avoid overflow) */}
-        <span className="text-xs sm:text-sm text-gray-600 max-w-[80px] truncate">
+        <span className="text-sm font-medium text-gray-800 max-w-[100px] truncate">
           👤 {username}
         </span>
 
@@ -63,9 +63,10 @@ export default function Navbar() {
         <button
           onClick={handleLogout}
           className="
-            text-xs sm:text-sm
-            text-red-500
-            px-2 py-1 rounded
+            text-sm font-medium
+            text-red-600
+            bg-red-50
+            px-3 py-1.5 rounded-lg
             active:scale-95 transition
           "
         >

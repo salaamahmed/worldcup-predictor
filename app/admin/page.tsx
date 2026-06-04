@@ -182,7 +182,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* TEAMS */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex justify-between font-bold text-lg text-gray-900 mb-3">
 
                   <span className="w-1/3 font-semibold">
                     {m.home_team}

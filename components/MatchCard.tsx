@@ -140,7 +140,7 @@ export default function MatchCard({
             absolute inset-0 rounded-xl
             bg-white/50 backdrop-blur-[1px]
             flex items-center justify-center
-            text-xs font-semibold text-gray-600
+            text-xs font-semibold text-gray-800
           ">
             🔒 Locked
           </div>
@@ -182,7 +182,7 @@ export default function MatchCard({
               height={32}
               className="rounded-full"
             />
-            <span className="text-xs sm:text-sm text-center truncate max-w-[80px]">
+            <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
               {match.home_team}
             </span>
           </div>
@@ -190,7 +190,7 @@ export default function MatchCard({
           {/* SCORE / VS */}
           <div className="text-center">
             {match.status === 'finished' ? (
-              <div className="font-bold text-base sm:text-lg">
+              <div className="font-bold text-lg sm:text-xl text-gray-900">
                 {match.home_score} - {match.away_score}
               </div>
             ) : (
@@ -209,7 +209,7 @@ export default function MatchCard({
               height={32}
               className="rounded-full"
             />
-            <span className="text-xs sm:text-sm text-center truncate max-w-[80px]">
+            <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
               {match.away_team}
             </span>
           </div>
@@ -220,7 +220,7 @@ export default function MatchCard({
         {prediction && (
           <div className="mt-3 pt-2 border-t text-center">
 
-            <div className="text-[10px] text-gray-400">
+            <div className="text-xs text-gray-500 mb-1">
               Your prediction
             </div>
 

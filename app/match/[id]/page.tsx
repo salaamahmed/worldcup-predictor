@@ -173,7 +173,7 @@ export default function MatchDetails() {
             {/* HOME */}
             <div className="flex flex-col items-center w-1/3">
               <Image src={getFlag(match.home_team)} alt="" width={40} height={40} className="rounded-full" />
-              <span className="mt-1 text-xs font-medium text-center truncate">
+              <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
                 {match.home_team}
               </span>
             </div>
@@ -181,14 +181,14 @@ export default function MatchDetails() {
             {/* CENTER */}
             <div className="text-center">
               {match.status === 'finished' ? (
-                <div className="text-xl font-bold">
+                <div className="text-2xl font-bold text-gray-900">
                   {match.home_score} - {match.away_score}
                 </div>
               ) : (
                 <div className="text-gray-400 font-bold text-sm">VS</div>
               )}
 
-              <div className="text-xs text-orange-500 mt-1">
+              <div className="text-sm font-medium text-orange-600">
                 {timeLeft}
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function MatchDetails() {
             {/* AWAY */}
             <div className="flex flex-col items-center w-1/3">
               <Image src={getFlag(match.away_team)} alt="" width={40} height={40} className="rounded-full" />
-              <span className="mt-1 text-xs font-medium text-center truncate">
+              <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
                 {match.away_team}
               </span>
             </div>
@@ -235,7 +235,7 @@ export default function MatchDetails() {
             ${
               isLocked
                 ? 'bg-gray-400'
-                : 'bg-blue-600 hover:bg-blue-700'
+                : 'bg-blue-700 hover:bg-blue-800'
             }`}
         >
           {isLocked

@@ -58,7 +58,7 @@ export default function MatchesPage() {
       {/* 🔥 HEADER (MOBILE OPTIMIZED) */}
       <div className="mb-4 flex items-center justify-center gap-2">
 
-        <h1 className="text-lg sm:text-xl font-semibold">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
           Matches
         </h1>
 

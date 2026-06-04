@@ -47,7 +47,7 @@ export default function LeaderboardPage() {
     <div className="max-w-md mx-auto px-3 py-4">
 
       {/* 🔥 HEADER */}
-      <h1 className="text-lg sm:text-xl font-semibold mb-4 text-center">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
         Leaderboard 🏆
       </h1>
 
@@ -86,7 +86,7 @@ export default function LeaderboardPage() {
 
                   {/* USER */}
                   <div>
-                    <div className="font-medium text-xs sm:text-sm truncate max-w-[120px]">
+                    <div className="font-semibold text-sm text-gray-900 truncate max-w-[120px]">
                       {r.username ?? 'Unknown'}
                     </div>
 
@@ -98,10 +98,10 @@ export default function LeaderboardPage() {
 
                 {/* RIGHT (POINTS) */}
                 <div className="text-right">
-                  <div className="font-semibold text-sm">
+                  <div className="font-bold text-base text-gray-900">
                     {r.total_points}
                   </div>
-                  <div className="text-[10px] text-gray-500">
+                  <div className="text-xs text-gray-600">
                     pts
                   </div>
                 </div>
