@@ -52,11 +52,8 @@ export default function RegisterPage() {
     // 👤 Save profile WITH EMAIL (IMPORTANT FIX)
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        id: user.id,
-        username,
-        email
-      })
+      .update({ username })
+      .eq('id', user.id)
 
     if (profileError) {
       alert('Account created but profile failed')
