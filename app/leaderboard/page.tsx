@@ -12,19 +12,78 @@ type Row = {
   rank: number
 }
 
+type League = {
+  league_id: string
+  league_name: string
+}
+
+// ✅ FIX: type for nested select result
+type LeagueMemberWithLeague = {
+  league_id: string
+  leagues: {
+    name: string
+  }[] | null
+}
+
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([])
+  const [leagues, setLeagues] = useState<League[]>([])
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
+  // 🔥 LOAD USER + LEAGUES
   useEffect(() => {
-    async function load() {
+    async function init() {
       const { data: userData } = await supabase.auth.getUser()
-      setUserId(userData.user?.id || null)
+      const uid = userData.user?.id || null
+      setUserId(uid)
+
+      if (!uid) return
 
       const { data, error } = await supabase
-        .from('leaderboard')
+        .from('league_members')
+        .select(`
+          league_id,
+          leagues ( name )
+        `)
+        .eq('user_id', uid)
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      // ✅ FIX: proper typing instead of any
+      const leagueData = data as LeagueMemberWithLeague[] | null
+
+      const formatted: League[] =
+        leagueData?.map((l) => ({
+          league_id: l.league_id,
+          league_name: l.leagues?.[0]?.name ?? 'League',
+        })) || []
+
+      setLeagues(formatted)
+
+      if (formatted.length > 0) {
+        setSelectedLeague(formatted[0].league_id)
+      }
+    }
+
+    init()
+  }, [])
+
+  // 🔥 LOAD LEADERBOARD
+  useEffect(() => {
+    if (!selectedLeague) return
+
+    async function loadLeaderboard() {
+      setLoading(true)
+
+      const { data, error } = await supabase
+        .from('leaderboard_by_league')
         .select('*')
+        .eq('league_id', selectedLeague)
 
       if (error) {
         console.error(error)
@@ -35,8 +94,8 @@ export default function LeaderboardPage() {
       setLoading(false)
     }
 
-    load()
-  }, [])
+    loadLeaderboard()
+  }, [selectedLeague])
 
   function getMedal(i: number) {
     if (i === 0) return '🥇'
@@ -48,12 +107,28 @@ export default function LeaderboardPage() {
   return (
     <div className="max-w-md mx-auto px-3 py-4">
 
-      {/* 🔥 HEADER */}
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 text-center">
         Leaderboard 🏆
       </h1>
 
-      {/* 🔥 CONTENT */}
+      {/* LEAGUE SELECTOR */}
+      {leagues.length > 0 && (
+        <div className="mb-4">
+          <select
+            value={selectedLeague || ''}
+            onChange={(e) => setSelectedLeague(e.target.value)}
+            className="w-full border rounded-lg p-2 text-sm"
+          >
+            {leagues.map((l) => (
+              <option key={l.league_id} value={l.league_id}>
+                {l.league_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* CONTENT */}
       {loading ? (
         <p className="text-center text-gray-500">Loading...</p>
       ) : rows.length === 0 ? (
@@ -65,16 +140,12 @@ export default function LeaderboardPage() {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
 
-            // ✅ IMPROVED MOVEMENT LOGIC
             const movementData = (() => {
               if (r.last_rank == null) {
                 return { text: '—', color: 'text-gray-400' }
               }
 
-              const diff = 
-                r.rank != null && r.last_rank != null
-                ? r.last_rank - r.rank
-                : 0
+              const diff = r.last_rank - r.rank
 
               if (diff > 0) {
                 return { text: `↑ ${diff}`, color: 'text-green-600' }
@@ -100,20 +171,14 @@ export default function LeaderboardPage() {
                 `}
               >
 
-                {/* LEFT */}
                 <div className="flex items-center gap-3">
-
-                  {/* RANK */}
                   <div className="text-base font-bold w-6 text-center">
                     {getMedal(i)}
                   </div>
 
-                  {/* USER */}
                   <div>
                     <div className="flex items-center gap-2 font-semibold text-sm text-gray-900">
                       {r.username}
-
-                      {/* 🔥 MOVEMENT */}
                       <span className={`text-xs ${movementData.color}`}>
                         {movementData.text}
                       </span>
@@ -125,7 +190,6 @@ export default function LeaderboardPage() {
                   </div>
                 </div>
 
-                {/* RIGHT (POINTS) */}
                 <div className="text-right">
                   <div className="font-bold text-base text-gray-900">
                     {r.total_points}
@@ -140,7 +204,6 @@ export default function LeaderboardPage() {
           })}
         </div>
       )}
-
     </div>
   )
 }
