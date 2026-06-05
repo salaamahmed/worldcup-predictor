@@ -20,7 +20,7 @@ type League = {
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [leagues, setLeagues] = useState<League[]>([])
-  const [selectedLeague, setSelectedLeague] = useState<string | null>(null)
+  const [selectedLeague, setSelectedLeague] = useState<string>('') // ✅ FIX
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
@@ -75,7 +75,7 @@ export default function LeaderboardPage() {
       setLeagues(formatted)
 
       if (formatted.length > 0) {
-        setSelectedLeague(formatted[0].league_id)
+        setSelectedLeague(formatted[0].league_id) // ✅ triggers fetch
       } else {
         setLoading(false)
       }
@@ -84,9 +84,9 @@ export default function LeaderboardPage() {
     init()
   }, [])
 
-  // ✅ SAFE FETCH (NO WARNING)
+  // 🔥 FETCH LEADERBOARD (SAFE)
   useEffect(() => {
-    if (!selectedLeague) return
+    if (!selectedLeague) return // ✅ prevents empty fetch
 
     let isMounted = true
 
@@ -138,7 +138,7 @@ export default function LeaderboardPage() {
       {leagues.length > 0 && (
         <div className="mb-4">
           <select
-            value={selectedLeague || ''}
+            value={selectedLeague}
             onChange={(e) => handleLeagueChange(e.target.value)}
             className="w-full border rounded-lg p-2 text-sm"
           >
