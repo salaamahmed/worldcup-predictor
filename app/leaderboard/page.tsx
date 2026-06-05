@@ -17,14 +17,6 @@ type League = {
   league_name: string
 }
 
-// ✅ FIX: type for nested select result
-type LeagueMemberWithLeague = {
-  league_id: string
-  leagues: {
-    name: string
-  }[] | null
-}
-
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [leagues, setLeagues] = useState<League[]>([])
@@ -32,7 +24,7 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
-  // 🔥 LOAD USER + LEAGUES
+  // 🔥 LOAD USER + LEAGUES (FIXED)
   useEffect(() => {
     async function init() {
       const { data: userData } = await supabase.auth.getUser()
@@ -41,26 +33,39 @@ export default function LeaderboardPage() {
 
       if (!uid) return
 
-      const { data, error } = await supabase
+      // ✅ STEP 1: get league_ids
+      const { data: memberData, error: memberError } = await supabase
         .from('league_members')
-        .select(`
-          league_id,
-          leagues ( name )
-        `)
+        .select('league_id')
         .eq('user_id', uid)
 
-      if (error) {
-        console.error(error)
+      if (memberError) {
+        console.error(memberError)
         return
       }
 
-      // ✅ FIX: proper typing instead of any
-      const leagueData = data as LeagueMemberWithLeague[] | null
+      const leagueIds = memberData?.map((m) => m.league_id) || []
+
+      if (leagueIds.length === 0) {
+        setLeagues([])
+        return
+      }
+
+      // ✅ STEP 2: get league names
+      const { data: leaguesData, error: leagueError } = await supabase
+        .from('leagues')
+        .select('id, name')
+        .in('id', leagueIds)
+
+      if (leagueError) {
+        console.error(leagueError)
+        return
+      }
 
       const formatted: League[] =
-        leagueData?.map((l) => ({
-          league_id: l.league_id,
-          league_name: l.leagues?.[0]?.name ?? 'League',
+        leaguesData?.map((l) => ({
+          league_id: l.id,
+          league_name: l.name,
         })) || []
 
       setLeagues(formatted)
@@ -73,7 +78,7 @@ export default function LeaderboardPage() {
     init()
   }, [])
 
-  // 🔥 LOAD LEADERBOARD
+  // 🔥 LOAD LEADERBOARD (UNCHANGED)
   useEffect(() => {
     if (!selectedLeague) return
 
