@@ -20,7 +20,7 @@ type League = {
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [leagues, setLeagues] = useState<League[]>([])
-  const [selectedLeague, setSelectedLeague] = useState<string>('') // ✅ FIX
+  const [selectedLeague, setSelectedLeague] = useState<string>('') // ✅ keep
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
@@ -36,15 +36,10 @@ export default function LeaderboardPage() {
         return
       }
 
-      console.log('USER:', uid)
-
-      // 1️⃣ get league ids
       const { data: memberData, error: memberError } = await supabase
         .from('league_members')
         .select('league_id')
         .eq('user_id', uid)
-
-      console.log('MEMBER DATA:', memberData)
 
       if (memberError) {
         console.error(memberError)
@@ -52,24 +47,21 @@ export default function LeaderboardPage() {
         return
       }
 
-      const leagueIds = memberData?.map((m) => m.league_id) || []
+      // ✅ FIX: clean array (prevents silent .in() failure)
+      const leagueIds = (memberData || [])
+        .map((m) => m.league_id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0)
 
       if (leagueIds.length === 0) {
-        console.log('NO LEAGUES FOUND')
         setLeagues([])
         setLoading(false)
         return
       }
 
-      console.log('LEAGUE IDS:', leagueIds)
-
-      // 2️⃣ get league names
       const { data: leaguesData, error: leagueError } = await supabase
         .from('leagues')
         .select('id, name')
-        .in('id', leagueIds)
-
-      console.log('LEAGES DATA:', leaguesData)
+        .in('id', [...leagueIds]) // ✅ FIX
 
       if (leagueError) {
         console.error(leagueError)
@@ -83,15 +75,11 @@ export default function LeaderboardPage() {
           league_name: l.name,
         }))
 
-      console.log('FORMATTED:', formatted)
-
       setLeagues(formatted)
 
-      // ✅ CRITICAL FIX
+      // ✅ FIX: always set league if exists
       if (formatted.length > 0) {
-        const firstLeague = formatted[0].league_id
-        console.log('SETTING LEAGUE:', firstLeague)
-        setSelectedLeague(firstLeague)
+        setSelectedLeague(formatted[0].league_id)
       } else {
         setLoading(false)
       }
@@ -100,9 +88,9 @@ export default function LeaderboardPage() {
     init()
   }, [])
 
-  // 🔥 FETCH LEADERBOARD (SAFE)
+  // 🔥 FETCH LEADERBOARD
   useEffect(() => {
-    if (!selectedLeague) return // ✅ prevents empty fetch
+    if (!selectedLeague) return
 
     let isMounted = true
 
@@ -132,9 +120,6 @@ export default function LeaderboardPage() {
       isMounted = false
     }
   }, [selectedLeague])
-
-  //logs
-  console.log('selectedLeague:', selectedLeague)
 
   function handleLeagueChange(leagueId: string) {
     setSelectedLeague(leagueId)
