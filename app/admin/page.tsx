@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { useRouter } from 'next/navigation'
 
 type Match = {
   id: string
@@ -12,60 +11,70 @@ type Match = {
   home_score: number | null
   away_score: number | null
   status: string | null
-  kickoff_time: string
   group_name?: string | null
 }
 
 export default function AdminPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [toast, setToast] = useState('')
+
   const [scores, setScores] = useState<
     Record<string, { home: string; away: string }>
   >({})
 
-  const router = useRouter()
-
-  // ✅ LOAD MATCHES
-  async function loadMatches() {
-    const { data, error } = await supabase
-      .from('matches')
-      .select('*')
-      .order('kickoff_time', { ascending: true })
-
-    if (error) {
-      console.error('LOAD ERROR:', error)
-      return
-    }
-
-    setMatches(data || [])
-
-    const initial: Record<string, { home: string; away: string }> = {}
-    data?.forEach((m) => {
-      initial[m.id] = {
-        home: m.home_score?.toString() || '',
-        away: m.away_score?.toString() || '',
-      }
-    })
-
-    setScores(initial)
-    setLoading(false)
-  }
-
-  // 🔐 AUTH
   useEffect(() => {
     async function init() {
-      const { data } = await supabase.auth.getUser()
+      const { data: userData } = await supabase.auth.getUser()
 
-      if (!data.user) {
-        router.push('/login')
+      if (!userData.user) {
+        window.location.href = '/login'
         return
       }
 
-      await loadMatches()
+      // 🔒 ADMIN CHECK
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userData.user.id)
+        .single()
+
+      if (!profile?.is_admin) {
+        window.location.href = '/'
+        return
+      }
+
+      setIsAdmin(true)
+
+      // 📥 LOAD MATCHES
+      const { data, error } = await supabase
+        .from('matches')
+        .select('*')
+        .order('match_number', { ascending: true })
+
+      if (error) {
+        console.error(error)
+        setLoading(false)
+        return
+      }
+
+      setMatches(data || [])
+
+      const initialScores: Record<string, { home: string; away: string }> = {}
+      data?.forEach((m) => {
+        initialScores[m.id] = {
+          home: m.home_score?.toString() || '',
+          away: m.away_score?.toString() || '',
+        }
+      })
+
+      setScores(initialScores)
+      setLoading(false)
     }
 
     init()
-  }, [router])
+  }, [])
 
   function handleChange(id: string, type: 'home' | 'away', value: string) {
     setScores((prev) => ({
@@ -77,22 +86,15 @@ export default function AdminPage() {
     }))
   }
 
-  // ✅ FIXED SAVE FUNCTION
-  async function saveMatch(m: Match) {
-    if (!m.id) {
-      alert('Missing match ID')
-      return
-    }
-
-    const home = parseInt(scores[m.id]?.home || '0', 10)
-    const away = parseInt(scores[m.id]?.away || '0', 10)
+  async function saveMatch(match: Match) {
+    const home = Number(scores[match.id]?.home)
+    const away = Number(scores[match.id]?.away)
 
     if (isNaN(home) || isNaN(away)) {
-      alert('Enter valid scores')
+      setToast('Invalid scores ❌')
       return
     }
 
-    // ✅ Proper Supabase update (WITH WHERE)
     const { data, error } = await supabase
       .from('matches')
       .update({
@@ -100,146 +102,104 @@ export default function AdminPage() {
         away_score: away,
         status: 'finished',
       })
-      .eq('id', m.id)
+      .eq('id', match.id)
       .select()
 
-    if (error) {
-      console.error('SAVE ERROR:', error)
-      alert(error.message)
+    // 🔥 CRITICAL FIX
+    if (error || !data || data.length === 0) {
+      setToast('Not authorized ❌')
       return
     }
 
-    console.log('RESULT:', data)
-    alert('Saved')
+    setToast('Saved ✅')
 
-    // update UI instantly
     setMatches((prev) =>
-      prev.map((x) =>
-        x.id === m.id
-          ? {
-              ...x,
-              home_score: home,
-              away_score: away,
-              status: 'finished',
-            }
-          : x
+      prev.map((m) =>
+        m.id === match.id
+          ? { ...m, home_score: home, away_score: away, status: 'finished' }
+          : m
       )
     )
 
-    await supabase.rpc('update_ranks')
+    setTimeout(() => setToast(''), 2000)
   }
 
-  return (
-    <div className="max-w-5xl mx-auto p-6">
+  if (loading) return null
+  if (!isAdmin) return null
 
-      {/* HEADER */}
-      <div className="mb-8 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">
-          Admin Panel ⚙️
-        </h1>
-        <span className="text-sm text-gray-500">
-          Manage matches & results
-        </span>
+  return (
+    <div className="max-w-4xl mx-auto p-4 space-y-4">
+
+      <h1 className="text-xl font-bold text-gray-900 text-center">
+        Admin Panel ⚙️
+      </h1>
+
+      <div className="space-y-3">
+
+        {matches.map((m) => (
+          <div
+            key={m.id}
+            className="bg-white p-4 rounded-xl border shadow-sm"
+          >
+            {/* TEAMS */}
+            <div className="flex justify-between font-bold text-gray-900 text-sm">
+              <span>{m.home_team}</span>
+              <span>{m.away_team}</span>
+            </div>
+
+            {/* INFO */}
+            <div className="text-xs text-gray-500 mb-2">
+              Match {m.match_number} {m.group_name && `• ${m.group_name}`}
+            </div>
+
+            {/* INPUTS */}
+            <div className="flex items-center gap-2">
+
+              <input
+                type="number"
+                value={scores[m.id]?.home || ''}
+                onChange={(e) =>
+                  handleChange(m.id, 'home', e.target.value)
+                }
+                className="w-14 h-10 border rounded-lg text-center"
+              />
+
+              <span className="font-bold">-</span>
+
+              <input
+                type="number"
+                value={scores[m.id]?.away || ''}
+                onChange={(e) =>
+                  handleChange(m.id, 'away', e.target.value)
+                }
+                className="w-14 h-10 border rounded-lg text-center"
+              />
+
+              <button
+                onClick={() => saveMatch(m)}
+                className="ml-3 bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm active:scale-95"
+              >
+                Save
+              </button>
+
+              {m.status === 'finished' && (
+                <span className="ml-2 text-green-600 text-xs font-semibold">
+                  ✔
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+
       </div>
 
-      {loading ? (
-        <p>Loading matches...</p>
-      ) : (
-        <div className="space-y-5">
-
-          {matches.map((m) => {
-            const date = new Date(m.kickoff_time)
-
-            return (
-              <div
-                key={m.id}
-                className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition"
-              >
-
-                {/* TOP */}
-                <div className="flex justify-between items-center mb-2">
-                  <div className="text-sm text-gray-500">
-                    Match {m.match_number}
-                    {m.group_name && ` • ${m.group_name}`}
-                  </div>
-
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                      m.status === 'finished'
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-blue-100 text-blue-600'
-                    }`}
-                  >
-                    {m.status}
-                  </span>
-                </div>
-
-                {/* TIME */}
-                <div className="text-xs text-gray-400 mb-4">
-                  {date.toLocaleDateString()} •{' '}
-                  {date.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
-
-                {/* TEAMS */}
-                <div className="flex justify-between font-bold text-lg text-gray-900 mb-3">
-
-                  <span className="w-1/3 font-semibold">
-                    {m.home_team}
-                  </span>
-
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      value={scores[m.id]?.home || ''}
-                      onChange={(e) =>
-                        handleChange(m.id, 'home', e.target.value)
-                      }
-                      className="w-14 border rounded text-center p-1"
-                    />
-
-                    <span className="font-bold">-</span>
-
-                    <input
-                      type="number"
-                      value={scores[m.id]?.away || ''}
-                      onChange={(e) =>
-                        handleChange(m.id, 'away', e.target.value)
-                      }
-                      className="w-14 border rounded text-center p-1"
-                    />
-                  </div>
-
-                  <span className="w-1/3 text-right font-semibold">
-                    {m.away_team}
-                  </span>
-                </div>
-
-                {/* FINAL SCORE */}
-                {m.status === 'finished' && (
-                  <div className="text-center text-sm text-green-600 font-semibold mb-3">
-                    Final Score: {m.home_score} - {m.away_score}
-                  </div>
-                )}
-
-                {/* ACTION */}
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => saveMatch(m)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Save Result
-                  </button>
-                </div>
-
-              </div>
-            )
-          })}
-
+      {/* 🔥 TOAST */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm shadow">
+          {toast}
         </div>
       )}
+
     </div>
   )
 }
