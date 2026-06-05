@@ -20,22 +20,20 @@ type League = {
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [leagues, setLeagues] = useState<League[]>([])
-  const [selectedLeague, setSelectedLeague] = useState<string>('') // ✅ keep
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
-  // 🔥 LOAD USER + LEAGUES
+  // 🔥 LOAD USER + LEAGUES (FIXED)
   useEffect(() => {
     async function init() {
       const { data: userData } = await supabase.auth.getUser()
       const uid = userData.user?.id || null
       setUserId(uid)
 
-      if (!uid) {
-        setLoading(false)
-        return
-      }
+      if (!uid) return
 
+      // ✅ STEP 1: get league_ids
       const { data: memberData, error: memberError } = await supabase
         .from('league_members')
         .select('league_id')
@@ -43,58 +41,48 @@ export default function LeaderboardPage() {
 
       if (memberError) {
         console.error(memberError)
-        setLoading(false)
         return
       }
 
-      // ✅ FIX: clean array (prevents silent .in() failure)
-      const leagueIds = (memberData || [])
-        .map((m) => m.league_id)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0)
+      const leagueIds = memberData?.map((m) => m.league_id) || []
 
       if (leagueIds.length === 0) {
         setLeagues([])
-        setLoading(false)
         return
       }
 
+      // ✅ STEP 2: get league names
       const { data: leaguesData, error: leagueError } = await supabase
         .from('leagues')
         .select('id, name')
-        .in('id', [...leagueIds]) // ✅ FIX
+        .in('id', leagueIds)
 
       if (leagueError) {
         console.error(leagueError)
-        setLoading(false)
         return
       }
 
       const formatted: League[] =
-        (leaguesData || []).map((l) => ({
+        leaguesData?.map((l) => ({
           league_id: l.id,
           league_name: l.name,
-        }))
+        })) || []
 
       setLeagues(formatted)
 
-      // ✅ FIX: always set league if exists
       if (formatted.length > 0) {
         setSelectedLeague(formatted[0].league_id)
-      } else {
-        setLoading(false)
       }
     }
 
     init()
   }, [])
 
-  // 🔥 FETCH LEADERBOARD
+  // 🔥 LOAD LEADERBOARD (UNCHANGED)
   useEffect(() => {
     if (!selectedLeague) return
 
-    let isMounted = true
-
-    async function fetchLeaderboard() {
+    async function loadLeaderboard() {
       setLoading(true)
 
       const { data, error } = await supabase
@@ -102,30 +90,19 @@ export default function LeaderboardPage() {
         .select('*')
         .eq('league_id', selectedLeague)
 
-      if (!isMounted) return
-
       if (error) {
-        console.error('LEADERBOARD ERROR:', error)
-        setRows([])
-      } else {
-        setRows((data as Row[]) || [])
+        console.error(error)
+        return
       }
 
+      setRows(data || [])
       setLoading(false)
     }
 
-    fetchLeaderboard()
-
-    return () => {
-      isMounted = false
-    }
+    loadLeaderboard()
   }, [selectedLeague])
 
-  function handleLeagueChange(leagueId: string) {
-    setSelectedLeague(leagueId)
-  }
-
-  function getMedal(i: number): string {
+  function getMedal(i: number) {
     if (i === 0) return '🥇'
     if (i === 1) return '🥈'
     if (i === 2) return '🥉'
@@ -134,6 +111,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="max-w-md mx-auto px-3 py-4">
+
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 text-center">
         Leaderboard 🏆
       </h1>
@@ -142,8 +120,8 @@ export default function LeaderboardPage() {
       {leagues.length > 0 && (
         <div className="mb-4">
           <select
-            value={selectedLeague}
-            onChange={(e) => handleLeagueChange(e.target.value)}
+            value={selectedLeague || ''}
+            onChange={(e) => setSelectedLeague(e.target.value)}
             className="w-full border rounded-lg p-2 text-sm"
           >
             {leagues.map((l) => (
@@ -162,7 +140,8 @@ export default function LeaderboardPage() {
         <p className="text-center text-gray-500">No data yet</p>
       ) : (
         <div className="space-y-2">
-          {rows.map((r, i: number) => {
+
+          {rows.map((r, i) => {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
 
@@ -196,6 +175,7 @@ export default function LeaderboardPage() {
                   ${isMe ? 'ring-2 ring-blue-500' : ''}
                 `}
               >
+
                 <div className="flex items-center gap-3">
                   <div className="text-base font-bold w-6 text-center">
                     {getMedal(i)}
@@ -219,8 +199,11 @@ export default function LeaderboardPage() {
                   <div className="font-bold text-base text-gray-900">
                     {r.total_points}
                   </div>
-                  <div className="text-xs text-gray-600">pts</div>
+                  <div className="text-xs text-gray-600">
+                    pts
+                  </div>
                 </div>
+
               </div>
             )
           })}
