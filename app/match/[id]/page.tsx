@@ -97,7 +97,7 @@ export default function MatchDetails() {
     load()
   }, [id])
 
-  // 🔥 REALTIME MATCH + PREDICTIONS
+  // 🔥 REALTIME
   useEffect(() => {
     if (!id) return
 
@@ -141,7 +141,7 @@ export default function MatchDetails() {
     }
   }, [id])
 
-  // 🔥 Countdown
+  // 🔥 COUNTDOWN
   useEffect(() => {
     if (!match?.kickoff_time) return
 
@@ -165,10 +165,14 @@ export default function MatchDetails() {
 
   const existing = predictions.find((p) => p.user_id === userId)
 
+  // 🔥 LOCK LOGIC
   const isLocked =
-    match ? new Date(match.kickoff_time) <= new Date() : false
+    match
+      ? new Date(match.kickoff_time) <= new Date() ||
+        match.status === 'live' ||
+        match.status === 'finished'
+      : false
 
-  // 🔥 SUBMIT (unchanged logic, just kept safe)
   async function handleSubmit() {
     if (!home || !away || !userId) return
 
@@ -247,6 +251,14 @@ export default function MatchDetails() {
         </div>
       )}
 
+      {/* LOCK BANNER */}
+      {isLocked && (
+        <div className="text-center text-xs text-red-500 font-medium">
+          🔒 Predictions closed
+        </div>
+      )}
+
+      {/* INPUT */}
       <div className="bg-white border rounded-xl p-4 shadow-sm">
         <h2 className="text-sm font-semibold mb-3 text-center">
           {existing ? 'Update Prediction' : 'Make Prediction'}
@@ -277,11 +289,17 @@ export default function MatchDetails() {
             ${isLocked ? 'bg-gray-400' : 'bg-blue-700 hover:bg-blue-800'}
           `}
         >
-          {isLocked ? 'Prediction locked' : saving ? 'Saving...' : existing ? 'Update' : 'Submit'}
+          {isLocked
+            ? 'Prediction locked'
+            : saving
+            ? 'Saving...'
+            : existing
+            ? 'Update'
+            : 'Submit'}
         </button>
       </div>
 
-      {/* 🔥 PREDICTIONS LIST WITH POINTS */}
+      {/* PREDICTIONS */}
       <div>
         <h2 className="text-sm font-semibold mb-2">Predictions</h2>
 
@@ -289,10 +307,18 @@ export default function MatchDetails() {
           {predictions.map((p) => (
             <div
               key={p.id}
-              className="flex justify-between items-center p-3 rounded-lg border bg-white text-sm"
+              className={`
+                flex justify-between items-center p-3 rounded-lg border text-sm
+                ${p.user_id === userId ? 'bg-blue-50 border-blue-400' : 'bg-white'}
+              `}
             >
-              <div className="font-medium text-xs">
+              <div className="font-medium text-xs flex items-center gap-1">
                 {p.username}
+                {p.user_id === userId && (
+                  <span className="text-[10px] text-blue-600 font-semibold">
+                    (You)
+                  </span>
+                )}
               </div>
 
               <div className="text-right">
