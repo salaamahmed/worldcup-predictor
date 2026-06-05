@@ -117,6 +117,9 @@ export default function LeaderboardPage() {
     }
   }, [selectedLeague])
 
+  //logs
+  console.log('selectedLeague:', selectedLeague)
+
   function handleLeagueChange(leagueId: string) {
     setSelectedLeague(leagueId)
   }
