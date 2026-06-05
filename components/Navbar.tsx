@@ -34,53 +34,58 @@ export default function Navbar() {
   }
 
   return (
-    <div
-      className="
+    <div className="
       sticky top-0 z-50
       bg-white border-b
       px-3 py-2
       flex items-center justify-between
-    "
-    >
-      {/* LEFT: LOGO + TITLE */}
-      <Link href="/" className="flex items-center gap-2">
-        <Image
-          src="/FIFA26.png"
-          alt="World Cup"
-          width={24}
-          height={24}
-        />
-        <span className="font-bold text-base sm:text-lg text-gray-900">
-          FIFA WC 2026
-        </span>
-      </Link>
+    ">
 
-      {/* CENTER: NAV LINKS (hidden on very small screens if needed) */}
-      <div className="hidden sm:flex items-center gap-4 text-sm font-medium text-gray-800">
-        <Link href="/">Matches</Link>
-        <Link href="/leaderboard">Leaderboard</Link>
-        {isAdmin && <Link href="/admin">Admin</Link>}
+      {/* LEFT: LOGO + TITLE */}
+      <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/FIFA26.png"
+            alt="World Cup"
+            width={24}
+            height={24}
+          />
+          <span className="font-bold text-base sm:text-lg text-gray-900">
+            FIFA WC 2026
+          </span>
+        </Link>
       </div>
 
-      {/* RIGHT: USER + LOGOUT */}
-      <div className="flex items-center gap-2">
+      {/* RIGHT: USER + ADMIN + LOGOUT */}
+      <div className="flex items-center gap-3">
 
-        {/* Username + Admin badge */}
-        <div className="flex items-center gap-1 text-sm font-medium text-gray-900 max-w-[110px] truncate">
-          <span className="truncate">👤 {username}</span>
+        {/* Admin link (ONLY if admin) */}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="text-sm font-medium text-gray-800"
+          >
+            Admin
+          </Link>
+        )}
 
+        {/* Username */}
+        <span className="text-sm font-medium text-gray-800 max-w-[100px] truncate flex items-center gap-1">
+          👤 {username}
+
+          {/* Admin badge */}
           {isAdmin && (
             <span className="text-[10px] bg-blue-600 text-white px-1.5 py-[1px] rounded">
               ADMIN
             </span>
           )}
-        </div>
+        </span>
 
         {/* Logout button */}
         <button
           onClick={handleLogout}
           className="
-            text-sm font-semibold
+            text-sm font-medium
             text-red-600
             bg-red-50
             px-3 py-1.5 rounded-lg
