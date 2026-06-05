@@ -17,6 +17,14 @@ type League = {
   league_name: string
 }
 
+// ✅ FIX: type for nested select result
+type LeagueMemberWithLeague = {
+  league_id: string
+  leagues: {
+    name: string
+  }[] | null
+}
+
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [leagues, setLeagues] = useState<League[]>([])
@@ -24,7 +32,7 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
-  // 🔥 LOAD USER + LEAGUES (FIXED)
+  // 🔥 LOAD USER + LEAGUES
   useEffect(() => {
     async function init() {
       const { data: userData } = await supabase.auth.getUser()
@@ -33,39 +41,26 @@ export default function LeaderboardPage() {
 
       if (!uid) return
 
-      // ✅ STEP 1: get league_ids
-      const { data: memberData, error: memberError } = await supabase
+      const { data, error } = await supabase
         .from('league_members')
-        .select('league_id')
+        .select(`
+          league_id,
+          leagues ( name )
+        `)
         .eq('user_id', uid)
 
-      if (memberError) {
-        console.error(memberError)
+      if (error) {
+        console.error(error)
         return
       }
 
-      const leagueIds = memberData?.map((m) => m.league_id) || []
-
-      if (leagueIds.length === 0) {
-        setLeagues([])
-        return
-      }
-
-      // ✅ STEP 2: get league names
-      const { data: leaguesData, error: leagueError } = await supabase
-        .from('leagues')
-        .select('id, name')
-        .in('id', leagueIds)
-
-      if (leagueError) {
-        console.error(leagueError)
-        return
-      }
+      // ✅ FIX: proper typing instead of any
+      const leagueData = data as LeagueMemberWithLeague[] | null
 
       const formatted: League[] =
-        leaguesData?.map((l) => ({
-          league_id: l.id,
-          league_name: l.name,
+        leagueData?.map((l) => ({
+          league_id: l.league_id,
+          league_name: l.leagues?.[0]?.name ?? 'League',
         })) || []
 
       setLeagues(formatted)
@@ -78,7 +73,7 @@ export default function LeaderboardPage() {
     init()
   }, [])
 
-  // 🔥 LOAD LEADERBOARD (UNCHANGED)
+  // 🔥 LOAD LEADERBOARD
   useEffect(() => {
     if (!selectedLeague) return
 
