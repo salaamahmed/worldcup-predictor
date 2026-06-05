@@ -9,6 +9,7 @@ type Row = {
   total_points: number
   exact_scores: number
   last_rank: number | null
+  rank: number
 }
 
 export default function LeaderboardPage() {
@@ -70,7 +71,10 @@ export default function LeaderboardPage() {
                 return { text: '—', color: 'text-gray-400' }
               }
 
-              const diff = r.last_rank - (i + 1)
+              const diff = 
+                r.rank != null && r.last_rank != null
+                ? r.last_rank - r.rank
+                : 0
 
               if (diff > 0) {
                 return { text: `↑ ${diff}`, color: 'text-green-600' }
