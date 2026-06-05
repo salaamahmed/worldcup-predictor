@@ -11,8 +11,6 @@ type Match = {
   away_team: string
   kickoff_time: string
   status: string
-  home_score?: number | null
-  away_score?: number | null
 }
 
 type Prediction = {
@@ -20,7 +18,6 @@ type Prediction = {
   predicted_home: number
   predicted_away: number
   user_id: string
-  points?: number
 }
 
 export default function MatchesPage() {
@@ -28,7 +25,7 @@ export default function MatchesPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [userId, setUserId] = useState<string | null>(null)
 
-  // 🔥 INITIAL LOAD
+  // 🔥 SINGLE CLEAN LOAD (removed duplicate useEffect)
   useEffect(() => {
     async function load() {
       const { data: userData } = await supabase.auth.getUser()
@@ -57,75 +54,12 @@ export default function MatchesPage() {
     load()
   }, [])
 
-  // 🔥 REALTIME UPDATES (FIXED TYPES)
-  useEffect(() => {
-    const channel = supabase
-      .channel('matches-realtime')
-
-      // ✅ MATCH UPDATES
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'matches',
-        },
-        (payload) => {
-          const updatedMatch = payload.new as Match
-          if (!updatedMatch) return
-
-          setMatches((prev) =>
-            prev.map((m) =>
-              m.id === updatedMatch.id ? { ...m, ...updatedMatch } : m
-            )
-          )
-        }
-      )
-
-      // ✅ PREDICTION UPDATES (FIXED)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'predictions',
-        },
-        (payload) => {
-          const newPrediction = payload.new as Prediction
-          if (!newPrediction) return
-
-          setPredictions((prev) => {
-            const updated = [...prev]
-
-            const index = updated.findIndex(
-              (p) =>
-                p.match_id === newPrediction.match_id &&
-                p.user_id === newPrediction.user_id
-            )
-
-            if (index !== -1) {
-              updated[index] = newPrediction
-            } else {
-              updated.push(newPrediction)
-            }
-
-            return updated
-          })
-        }
-      )
-
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [])
-
   return (
     <div className="max-w-6xl mx-auto py-4">
 
-      {/* 🔥 HEADER */}
+      {/* 🔥 HEADER (MOBILE OPTIMIZED) */}
       <div className="mb-4 flex items-center justify-center gap-2">
+
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
           Matches
         </h1>
@@ -139,7 +73,7 @@ export default function MatchesPage() {
         />
       </div>
 
-      {/* 🔥 GRID */}
+      {/* 🔥 GRID (MOBILE-FIRST) */}
       <div className="
         grid 
         grid-cols-1 
@@ -158,7 +92,7 @@ export default function MatchesPage() {
         ))}
       </div>
 
-      {/* 🔥 FLOATING BUTTON */}
+      {/* 🔥 FLOATING ACTION BUTTON */}
       <button
         onClick={() =>
           window.scrollTo({ top: 0, behavior: 'smooth' })

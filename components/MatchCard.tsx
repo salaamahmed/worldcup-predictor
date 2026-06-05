@@ -21,6 +21,7 @@ type Prediction = {
   points?: number
 }
 
+// FLAG MAP (unchanged)
 function getFlag(team: string) {
   const map: Record<string, string> = {
     Mexico: 'mx',
@@ -119,121 +120,128 @@ export default function MatchCard({
     return 'border-red-500 bg-red-50'
   }
 
+  const CardContent = (
+    <>
+      {/* 🔒 LOCK OVERLAY */}
+      {isLocked && (
+        <div className="
+          absolute inset-0 rounded-xl
+          bg-white/60 backdrop-blur-[1px]
+          flex items-center justify-center
+          text-sm font-semibold text-gray-800
+          z-10
+        ">
+          🔒 Locked
+        </div>
+      )}
+
+      {/* TOP INFO */}
+      <div className="flex justify-between text-[11px] text-gray-500 mb-2">
+        <span>
+          {date.toLocaleDateString()} •{' '}
+          {date.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </span>
+
+        <span
+          className={`
+            text-[10px] font-semibold px-2 py-[2px] rounded
+            ${
+              match.status === 'finished'
+                ? 'bg-green-100 text-green-600'
+                : 'bg-blue-100 text-blue-600'
+            }
+          `}
+        >
+          {match.status}
+        </span>
+      </div>
+
+      {/* TEAMS */}
+      <div className="flex items-center justify-between">
+
+        {/* HOME */}
+        <div className="flex flex-col items-center w-1/3 gap-1">
+          <Image
+            src={getFlag(match.home_team)}
+            alt={match.home_team}
+            width={32}
+            height={32}
+            className="rounded-full"
+          />
+          <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
+            {match.home_team}
+          </span>
+        </div>
+
+        {/* SCORE / VS */}
+        <div className="text-center">
+          {match.status === 'finished' ? (
+            <div className="font-bold text-lg sm:text-xl text-gray-900">
+              {match.home_score} - {match.away_score}
+            </div>
+          ) : (
+            <div className="text-gray-400 font-bold text-xs sm:text-sm">
+              VS
+            </div>
+          )}
+        </div>
+
+        {/* AWAY */}
+        <div className="flex flex-col items-center w-1/3 gap-1">
+          <Image
+            src={getFlag(match.away_team)}
+            alt={match.away_team}
+            width={32}
+            height={32}
+            className="rounded-full"
+          />
+          <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
+            {match.away_team}
+          </span>
+        </div>
+
+      </div>
+
+      {/* PREDICTION */}
+      {prediction && (
+        <div className="mt-3 pt-2 border-t text-center">
+          <div className="text-xs text-gray-500 mb-1">
+            Your prediction
+          </div>
+
+          <div className="font-semibold text-sm">
+            {prediction.predicted_home} - {prediction.predicted_away}
+          </div>
+
+          {match.status === 'finished' && (
+            <div className="text-[11px] mt-1 font-semibold text-blue-600">
+              {prediction.points ?? 0} pts
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+
   const baseClass = `
     relative
     bg-white rounded-xl border shadow-sm
     p-3 sm:p-4
-    active:scale-[0.98] hover:shadow-md cursor-pointer transition
+    ${!isLocked ? 'active:scale-[0.98] hover:shadow-md cursor-pointer transition' : ''}
     ${getResultColor()}
   `
 
+  // 🔥 KEY FIX: NO LINK WHEN LOCKED
+  if (isLocked) {
+    return <div className={baseClass}>{CardContent}</div>
+  }
+
   return (
     <Link href={`/match/${match.id}`}>
-      <div className={baseClass}>
-
-        {/* 🔒 LOCK OVERLAY (visual only now) */}
-        {isLocked && (
-          <div className="
-            absolute inset-0 rounded-xl
-            bg-white/60 backdrop-blur-[1px]
-            flex items-center justify-center
-            text-sm font-semibold text-gray-800
-            z-10
-          ">
-            🔒 Locked
-          </div>
-        )}
-
-        {/* TOP INFO */}
-        <div className="flex justify-between text-[11px] text-gray-500 mb-2">
-          <span>
-            {date.toLocaleDateString()} •{' '}
-            {date.toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
-
-          <span
-            className={`
-              text-[10px] font-semibold px-2 py-[2px] rounded
-              ${
-                match.status === 'finished'
-                  ? 'bg-green-100 text-green-600'
-                  : 'bg-blue-100 text-blue-600'
-              }
-            `}
-          >
-            {match.status}
-          </span>
-        </div>
-
-        {/* TEAMS */}
-        <div className="flex items-center justify-between">
-
-          {/* HOME */}
-          <div className="flex flex-col items-center w-1/3 gap-1">
-            <Image
-              src={getFlag(match.home_team)}
-              alt={match.home_team}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
-            <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
-              {match.home_team}
-            </span>
-          </div>
-
-          {/* SCORE / VS */}
-          <div className="text-center">
-            {match.status === 'finished' ? (
-              <div className="font-bold text-lg sm:text-xl text-gray-900">
-                {match.home_score} - {match.away_score}
-              </div>
-            ) : (
-              <div className="text-gray-400 font-bold text-xs sm:text-sm">
-                VS
-              </div>
-            )}
-          </div>
-
-          {/* AWAY */}
-          <div className="flex flex-col items-center w-1/3 gap-1">
-            <Image
-              src={getFlag(match.away_team)}
-              alt={match.away_team}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
-            <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
-              {match.away_team}
-            </span>
-          </div>
-
-        </div>
-
-        {/* PREDICTION */}
-        {prediction && (
-          <div className="mt-3 pt-2 border-t text-center">
-            <div className="text-xs text-gray-500 mb-1">
-              Your prediction
-            </div>
-
-            <div className="font-semibold text-sm">
-              {prediction.predicted_home} - {prediction.predicted_away}
-            </div>
-
-            {match.status === 'finished' && (
-              <div className="text-[11px] mt-1 font-semibold text-blue-600">
-                {prediction.points ?? 0} pts
-              </div>
-            )}
-          </div>
-        )}
-
-      </div>
+      <div className={baseClass}>{CardContent}</div>
     </Link>
   )
 }
