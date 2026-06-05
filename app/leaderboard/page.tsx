@@ -36,10 +36,15 @@ export default function LeaderboardPage() {
         return
       }
 
+      console.log('USER:', uid)
+
+      // 1️⃣ get league ids
       const { data: memberData, error: memberError } = await supabase
         .from('league_members')
         .select('league_id')
         .eq('user_id', uid)
+
+      console.log('MEMBER DATA:', memberData)
 
       if (memberError) {
         console.error(memberError)
@@ -50,15 +55,21 @@ export default function LeaderboardPage() {
       const leagueIds = memberData?.map((m) => m.league_id) || []
 
       if (leagueIds.length === 0) {
+        console.log('NO LEAGUES FOUND')
         setLeagues([])
         setLoading(false)
         return
       }
 
+      console.log('LEAGUE IDS:', leagueIds)
+
+      // 2️⃣ get league names
       const { data: leaguesData, error: leagueError } = await supabase
         .from('leagues')
         .select('id, name')
         .in('id', leagueIds)
+
+      console.log('LEAGES DATA:', leaguesData)
 
       if (leagueError) {
         console.error(leagueError)
@@ -67,15 +78,20 @@ export default function LeaderboardPage() {
       }
 
       const formatted: League[] =
-        leaguesData?.map((l) => ({
+        (leaguesData || []).map((l) => ({
           league_id: l.id,
           league_name: l.name,
-        })) || []
+        }))
+
+      console.log('FORMATTED:', formatted)
 
       setLeagues(formatted)
 
+      // ✅ CRITICAL FIX
       if (formatted.length > 0) {
-        setSelectedLeague(formatted[0].league_id) // ✅ triggers fetch
+        const firstLeague = formatted[0].league_id
+        console.log('SETTING LEAGUE:', firstLeague)
+        setSelectedLeague(firstLeague)
       } else {
         setLoading(false)
       }
