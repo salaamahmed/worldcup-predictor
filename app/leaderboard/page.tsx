@@ -84,11 +84,13 @@ export default function LeaderboardPage() {
     init()
   }, [])
 
-  // 🔥 LOAD LEADERBOARD
+  // ✅ SAFE FETCH (NO WARNING)
   useEffect(() => {
     if (!selectedLeague) return
 
-    async function loadLeaderboard() {
+    let isMounted = true
+
+    async function fetchLeaderboard() {
       setLoading(true)
 
       const { data, error } = await supabase
@@ -96,20 +98,29 @@ export default function LeaderboardPage() {
         .select('*')
         .eq('league_id', selectedLeague)
 
+      if (!isMounted) return
+
       if (error) {
-        console.error(error)
-        setLoading(false)
-        return
+        console.error('LEADERBOARD ERROR:', error)
+        setRows([])
+      } else {
+        setRows((data as Row[]) || [])
       }
 
-      setRows((data as Row[]) || [])
       setLoading(false)
     }
 
-    loadLeaderboard()
+    fetchLeaderboard()
+
+    return () => {
+      isMounted = false
+    }
   }, [selectedLeague])
 
-  // ✅ FIXED (explicit typing)
+  function handleLeagueChange(leagueId: string) {
+    setSelectedLeague(leagueId)
+  }
+
   function getMedal(i: number): string {
     if (i === 0) return '🥇'
     if (i === 1) return '🥈'
@@ -119,7 +130,6 @@ export default function LeaderboardPage() {
 
   return (
     <div className="max-w-md mx-auto px-3 py-4">
-
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 text-center">
         Leaderboard 🏆
       </h1>
@@ -129,7 +139,7 @@ export default function LeaderboardPage() {
         <div className="mb-4">
           <select
             value={selectedLeague || ''}
-            onChange={(e) => setSelectedLeague(e.target.value)}
+            onChange={(e) => handleLeagueChange(e.target.value)}
             className="w-full border rounded-lg p-2 text-sm"
           >
             {leagues.map((l) => (
@@ -148,7 +158,6 @@ export default function LeaderboardPage() {
         <p className="text-center text-gray-500">No data yet</p>
       ) : (
         <div className="space-y-2">
-
           {rows.map((r, i: number) => {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
@@ -183,7 +192,6 @@ export default function LeaderboardPage() {
                   ${isMe ? 'ring-2 ring-blue-500' : ''}
                 `}
               >
-
                 <div className="flex items-center gap-3">
                   <div className="text-base font-bold w-6 text-center">
                     {getMedal(i)}
@@ -207,11 +215,8 @@ export default function LeaderboardPage() {
                   <div className="font-bold text-base text-gray-900">
                     {r.total_points}
                   </div>
-                  <div className="text-xs text-gray-600">
-                    pts
-                  </div>
+                  <div className="text-xs text-gray-600">pts</div>
                 </div>
-
               </div>
             )
           })}
