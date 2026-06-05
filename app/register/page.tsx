@@ -35,10 +35,15 @@ export default function RegisterPage() {
       return
     }
 
-    // 🔐 Create user
+    // 🔐 Create user (✅ FIX: include username in metadata)
     const { data, error } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: {
+        data: {
+          username: username
+        }
+      }
     })
 
     if (error) {
@@ -49,16 +54,7 @@ export default function RegisterPage() {
     const user = data.user
     if (!user) return
 
-    // 👤 Save profile WITH EMAIL (IMPORTANT FIX)
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ username })
-      .eq('id', user.id)
-
-    if (profileError) {
-      alert('Account created but profile failed')
-      return
-    }
+    // ❌ REMOVED: retry/update logic (no longer needed)
 
     alert('Account created!')
     router.push('/login')

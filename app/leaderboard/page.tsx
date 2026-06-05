@@ -64,14 +64,24 @@ export default function LeaderboardPage() {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
 
-            const movement =
-              r.last_rank === null
-                ? ''
-                : i + 1 < r.last_rank
-                ? '↑'
-                : i + 1 > r.last_rank
-                ? '↓'
-                : ''
+            // ✅ IMPROVED MOVEMENT LOGIC
+            const movementData = (() => {
+              if (r.last_rank == null) {
+                return { text: '—', color: 'text-gray-400' }
+              }
+
+              const diff = r.last_rank - (i + 1)
+
+              if (diff > 0) {
+                return { text: `↑ ${diff}`, color: 'text-green-600' }
+              }
+
+              if (diff < 0) {
+                return { text: `↓ ${Math.abs(diff)}`, color: 'text-red-600' }
+              }
+
+              return { text: '—', color: 'text-gray-400' }
+            })()
 
             return (
               <div
@@ -96,17 +106,13 @@ export default function LeaderboardPage() {
 
                   {/* USER */}
                   <div>
-                    <div className="flex items-center gap-1 font-semibold text-sm text-gray-900">
+                    <div className="flex items-center gap-2 font-semibold text-sm text-gray-900">
                       {r.username}
-                      {movement && (
-                        <span
-                          className={`text-xs ${
-                            movement === '↑' ? 'text-green-600' : 'text-red-600'
-                          }`}
-                        >
-                          {movement}
-                        </span>
-                      )}
+
+                      {/* 🔥 MOVEMENT */}
+                      <span className={`text-xs ${movementData.color}`}>
+                        {movementData.text}
+                      </span>
                     </div>
 
                     <div className="text-[10px] text-gray-500">
