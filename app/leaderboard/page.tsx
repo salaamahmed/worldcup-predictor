@@ -24,16 +24,18 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
-  // 🔥 LOAD USER + LEAGUES (FIXED)
+  // 🔥 LOAD USER + LEAGUES
   useEffect(() => {
     async function init() {
       const { data: userData } = await supabase.auth.getUser()
       const uid = userData.user?.id || null
       setUserId(uid)
 
-      if (!uid) return
+      if (!uid) {
+        setLoading(false)
+        return
+      }
 
-      // ✅ STEP 1: get league_ids
       const { data: memberData, error: memberError } = await supabase
         .from('league_members')
         .select('league_id')
@@ -41,6 +43,7 @@ export default function LeaderboardPage() {
 
       if (memberError) {
         console.error(memberError)
+        setLoading(false)
         return
       }
 
@@ -48,10 +51,10 @@ export default function LeaderboardPage() {
 
       if (leagueIds.length === 0) {
         setLeagues([])
+        setLoading(false)
         return
       }
 
-      // ✅ STEP 2: get league names
       const { data: leaguesData, error: leagueError } = await supabase
         .from('leagues')
         .select('id, name')
@@ -59,6 +62,7 @@ export default function LeaderboardPage() {
 
       if (leagueError) {
         console.error(leagueError)
+        setLoading(false)
         return
       }
 
@@ -72,13 +76,15 @@ export default function LeaderboardPage() {
 
       if (formatted.length > 0) {
         setSelectedLeague(formatted[0].league_id)
+      } else {
+        setLoading(false)
       }
     }
 
     init()
   }, [])
 
-  // 🔥 LOAD LEADERBOARD (UNCHANGED)
+  // 🔥 LOAD LEADERBOARD
   useEffect(() => {
     if (!selectedLeague) return
 
@@ -92,17 +98,19 @@ export default function LeaderboardPage() {
 
       if (error) {
         console.error(error)
+        setLoading(false)
         return
       }
 
-      setRows(data || [])
+      setRows((data as Row[]) || [])
       setLoading(false)
     }
 
     loadLeaderboard()
   }, [selectedLeague])
 
-  function getMedal(i: number) {
+  // ✅ FIXED (explicit typing)
+  function getMedal(i: number): string {
     if (i === 0) return '🥇'
     if (i === 1) return '🥈'
     if (i === 2) return '🥉'
@@ -141,7 +149,7 @@ export default function LeaderboardPage() {
       ) : (
         <div className="space-y-2">
 
-          {rows.map((r, i) => {
+          {rows.map((r, i: number) => {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
 
