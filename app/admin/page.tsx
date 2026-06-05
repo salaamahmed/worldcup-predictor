@@ -125,6 +125,8 @@ export default function AdminPage() {
           : x
       )
     )
+
+    await supabase.rpc('update_ranks')
   }
 
   return (

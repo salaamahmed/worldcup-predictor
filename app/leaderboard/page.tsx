@@ -8,6 +8,7 @@ type Row = {
   username: string | null
   total_points: number
   exact_scores: number
+  last_rank: number | null
 }
 
 export default function LeaderboardPage() {
@@ -63,6 +64,15 @@ export default function LeaderboardPage() {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
 
+            const movement =
+              r.last_rank === null
+                ? ''
+                : i + 1 < r.last_rank
+                ? '↑'
+                : i + 1 > r.last_rank
+                ? '↓'
+                : ''
+
             return (
               <div
                 key={r.user_id}
@@ -86,8 +96,17 @@ export default function LeaderboardPage() {
 
                   {/* USER */}
                   <div>
-                    <div className="font-semibold text-sm text-gray-900 truncate max-w-[120px]">
-                      {r.username ?? 'Unknown'}
+                    <div className="flex items-center gap-1 font-semibold text-sm text-gray-900">
+                      {r.username}
+                      {movement && (
+                        <span
+                          className={`text-xs ${
+                            movement === '↑' ? 'text-green-600' : 'text-red-600'
+                          }`}
+                        >
+                          {movement}
+                        </span>
+                      )}
                     </div>
 
                     <div className="text-[10px] text-gray-500">
