@@ -47,6 +47,8 @@ export default function MatchesPage() {
 
         setPredictions(preds || [])
       }
+
+      await supabase.rpc('update_match_status')
     }
 
     load()
