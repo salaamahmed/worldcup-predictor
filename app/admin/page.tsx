@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+import LeagueManagement from '@/components/admin/LeagueManagement' // ✅ NEW
 
 type Match = {
   id: string
@@ -22,6 +23,7 @@ export default function AdminPage() {
   const [scores, setScores] = useState<
     Record<string, { home: string; away: string }>
   >({})
+  const [activeTab, setActiveTab] = useState<'matches' | 'leagues'>('matches') // ✅ NEW
 
   const router = useRouter()
 
@@ -51,7 +53,7 @@ export default function AdminPage() {
     setLoading(false)
   }
 
-  // 🔐 AUTH + ADMIN CHECK (ADDED)
+  // 🔐 AUTH + ADMIN CHECK
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getUser()
@@ -61,7 +63,6 @@ export default function AdminPage() {
         return
       }
 
-      // 🔥 ADMIN CHECK
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -89,7 +90,7 @@ export default function AdminPage() {
     }))
   }
 
-  // ✅ FIXED SAVE FUNCTION (LOGIC ONLY)
+  // ✅ SAVE MATCH
   async function saveMatch(m: Match) {
     if (!m.id) {
       alert('Missing match ID')
@@ -114,18 +115,15 @@ export default function AdminPage() {
       .eq('id', m.id)
       .select()
 
-    // 🔥 CRITICAL FIX
     if (error || !data || data.length === 0) {
       console.error('SAVE ERROR:', error)
-      console.error('FULL ERROR:', JSON.stringify(error, null, 2))
       alert('Not authorized')
       return
     }
 
-    console.log('RESULT:', data)
     alert('Saved')
 
-    // update UI instantly
+    // ✅ instant UI update
     setMatches((prev) =>
       prev.map((x) =>
         x.id === m.id
@@ -138,7 +136,6 @@ export default function AdminPage() {
           : x
       )
     )
-
   }
 
   if (loading) return null
@@ -147,112 +144,147 @@ export default function AdminPage() {
     <div className="max-w-5xl mx-auto p-6">
 
       {/* HEADER */}
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-6 flex justify-between items-center">
         <h1 className="text-3xl font-bold">
           Admin Panel ⚙️
         </h1>
         <span className="text-sm text-gray-500">
-          Manage matches & results
+          Manage system
         </span>
       </div>
 
-      {loading ? (
-        <p>Loading matches...</p>
-      ) : (
-        <div className="space-y-5">
+      {/* ✅ TAB SWITCHER (NEW) */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('matches')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+            activeTab === 'matches'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200'
+          }`}
+        >
+          Match Management
+        </button>
 
-          {matches.map((m) => {
-            const date = new Date(m.kickoff_time)
+        <button
+          onClick={() => setActiveTab('leagues')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+            activeTab === 'leagues'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200'
+          }`}
+        >
+          League Management
+        </button>
+      </div>
 
-            return (
-              <div
-                key={m.id}
-                className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition"
-              >
+      {/* ✅ MATCHES TAB (UNCHANGED UI) */}
+      {activeTab === 'matches' && (
+        <>
+          {matches.length === 0 ? (
+            <p>Loading matches...</p>
+          ) : (
+            <div className="space-y-5">
 
-                {/* TOP */}
-                <div className="flex justify-between items-center mb-2">
-                  <div className="text-sm text-gray-500">
-                    Match {m.match_number}
-                    {m.group_name && ` • ${m.group_name}`}
-                  </div>
+              {matches.map((m) => {
+                const date = new Date(m.kickoff_time)
 
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                      m.status === 'finished'
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-blue-100 text-blue-600'
-                    }`}
+                return (
+                  <div
+                    key={m.id}
+                    className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition"
                   >
-                    {m.status}
-                  </span>
-                </div>
 
-                {/* TIME */}
-                <div className="text-xs text-gray-400 mb-4">
-                  {date.toLocaleDateString()} •{' '}
-                  {date.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
+                    {/* TOP */}
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-sm text-gray-500">
+                        Match {m.match_number}
+                        {m.group_name && ` • ${m.group_name}`}
+                      </div>
 
-                {/* TEAMS */}
-                <div className="flex justify-between font-bold text-lg text-gray-900 mb-3">
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                          m.status === 'finished'
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-blue-100 text-blue-600'
+                        }`}
+                      >
+                        {m.status}
+                      </span>
+                    </div>
 
-                  <span className="w-1/3 font-semibold">
-                    {m.home_team}
-                  </span>
+                    {/* TIME */}
+                    <div className="text-xs text-gray-400 mb-4">
+                      {date.toLocaleDateString()} •{' '}
+                      {date.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
 
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      value={scores[m.id]?.home || ''}
-                      onChange={(e) =>
-                        handleChange(m.id, 'home', e.target.value)
-                      }
-                      className="w-14 border rounded text-center p-1"
-                    />
+                    {/* TEAMS */}
+                    <div className="flex justify-between font-bold text-lg text-gray-900 mb-3">
 
-                    <span className="font-bold">-</span>
+                      <span className="w-1/3 font-semibold">
+                        {m.home_team}
+                      </span>
 
-                    <input
-                      type="number"
-                      value={scores[m.id]?.away || ''}
-                      onChange={(e) =>
-                        handleChange(m.id, 'away', e.target.value)
-                      }
-                      className="w-14 border rounded text-center p-1"
-                    />
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          value={scores[m.id]?.home || ''}
+                          onChange={(e) =>
+                            handleChange(m.id, 'home', e.target.value)
+                          }
+                          className="w-14 border rounded text-center p-1"
+                        />
+
+                        <span className="font-bold">-</span>
+
+                        <input
+                          type="number"
+                          value={scores[m.id]?.away || ''}
+                          onChange={(e) =>
+                            handleChange(m.id, 'away', e.target.value)
+                          }
+                          className="w-14 border rounded text-center p-1"
+                        />
+                      </div>
+
+                      <span className="w-1/3 text-right font-semibold">
+                        {m.away_team}
+                      </span>
+                    </div>
+
+                    {/* FINAL SCORE */}
+                    {m.status === 'finished' && (
+                      <div className="text-center text-sm text-green-600 font-semibold mb-3">
+                        Final Score: {m.home_score} - {m.away_score}
+                      </div>
+                    )}
+
+                    {/* ACTION */}
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => saveMatch(m)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                      >
+                        Save Result
+                      </button>
+                    </div>
+
                   </div>
+                )
+              })}
 
-                  <span className="w-1/3 text-right font-semibold">
-                    {m.away_team}
-                  </span>
-                </div>
+            </div>
+          )}
+        </>
+      )}
 
-                {/* FINAL SCORE */}
-                {m.status === 'finished' && (
-                  <div className="text-center text-sm text-green-600 font-semibold mb-3">
-                    Final Score: {m.home_score} - {m.away_score}
-                  </div>
-                )}
-
-                {/* ACTION */}
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => saveMatch(m)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Save Result
-                  </button>
-                </div>
-
-              </div>
-            )
-          })}
-
-        </div>
+      {/* ✅ LEAGUES TAB (NEW) */}
+      {activeTab === 'leagues' && (
+        <LeagueManagement />
       )}
     </div>
   )
