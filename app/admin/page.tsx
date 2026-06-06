@@ -369,17 +369,18 @@ export default function AdminPage() {
                 </div>
 
                 {/* TEAMS WITH FLAGS */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between text-center">
 
                   {/* HOME */}
-                  <div className="flex flex-col items-center w-1/3">
+                  <div className="flex flex-col items-center justify-center w-1/3 gap-1">
                     <Image
                       src={getFlag(m.home_team)}
                       alt={m.home_team}
                       width={28}
                       height={28}
+                      className="rounded-full"
                     />
-                    <span className="text-sm">{m.home_team}</span>
+                    <span className="text-xs font-semibold">{m.home_team}</span>
                   </div>
 
                   {/* INPUT */}
@@ -406,14 +407,15 @@ export default function AdminPage() {
                   </div>
 
                   {/* AWAY */}
-                  <div className="flex flex-col items-center w-1/3">
+                  <div className="flex flex-col items-center justify-center w-1/3 gap-1">
                     <Image
                       src={getFlag(m.away_team)}
                       alt={m.away_team}
                       width={28}
                       height={28}
+                      className="rounded-full"
                     />
-                    <span className="text-sm">{m.away_team}</span>
+                    <span className="text-xs font-semibold">{m.away_team}</span>
                   </div>
 
                 </div>
