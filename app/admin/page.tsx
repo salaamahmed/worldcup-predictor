@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
-import LeagueManagement from '@/components/admin/LeagueManagement' // ✅ NEW
+import LeagueManagement from '@/components/admin/LeagueManagement'
 
 type Match = {
   id: string
@@ -23,11 +23,25 @@ export default function AdminPage() {
   const [scores, setScores] = useState<
     Record<string, { home: string; away: string }>
   >({})
-  const [activeTab, setActiveTab] = useState<'matches' | 'leagues'>('matches') // ✅ NEW
+  const [activeTab, setActiveTab] = useState<'matches' | 'leagues'>('matches')
+
+  // ✅ NEW (status + confirm)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null)
+  const [confirmText, setConfirmText] = useState('')
 
   const router = useRouter()
 
-  // ✅ LOAD MATCHES
+  function showStatus(msg: string) {
+    setStatusMessage(msg)
+    setTimeout(() => setStatusMessage(null), 2500)
+  }
+
+  function askConfirm(message: string, action: () => void) {
+    setConfirmText(message)
+    setConfirmAction(() => action)
+  }
+
   async function loadMatches() {
     const { data, error } = await supabase
       .from('matches')
@@ -35,7 +49,7 @@ export default function AdminPage() {
       .order('kickoff_time', { ascending: true })
 
     if (error) {
-      console.error('LOAD ERROR:', error)
+      console.error(error)
       return
     }
 
@@ -53,7 +67,6 @@ export default function AdminPage() {
     setLoading(false)
   }
 
-  // 🔐 AUTH + ADMIN CHECK
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getUser()
@@ -90,73 +103,101 @@ export default function AdminPage() {
     }))
   }
 
-  // ✅ SAVE MATCH
   async function saveMatch(m: Match) {
-    if (!m.id) {
-      alert('Missing match ID')
-      return
-    }
-
     const home = parseInt(scores[m.id]?.home || '0', 10)
     const away = parseInt(scores[m.id]?.away || '0', 10)
 
     if (isNaN(home) || isNaN(away)) {
-      alert('Enter valid scores')
+      showStatus('Enter valid scores')
       return
     }
 
-    const { data, error } = await supabase
-      .from('matches')
-      .update({
-        home_score: home,
-        away_score: away,
-        status: 'finished',
-      })
-      .eq('id', m.id)
-      .select()
+    askConfirm(
+      `Save result ${home} - ${away} for Match ${m.match_number}?`,
+      async () => {
+        const { data, error } = await supabase
+          .from('matches')
+          .update({
+            home_score: home,
+            away_score: away,
+            status: 'finished',
+          })
+          .eq('id', m.id)
+          .select()
 
-    if (error || !data || data.length === 0) {
-      console.error('SAVE ERROR:', error)
-      alert('Not authorized')
-      return
-    }
+        if (error || !data || data.length === 0) {
+          console.error(error)
+          showStatus('Not authorized')
+          return
+        }
 
-    alert('Saved')
+        showStatus(`Saved Match ${m.match_number}`)
 
-    // ✅ instant UI update
-    setMatches((prev) =>
-      prev.map((x) =>
-        x.id === m.id
-          ? {
-              ...x,
-              home_score: home,
-              away_score: away,
-              status: 'finished',
-            }
-          : x
-      )
+        setMatches((prev) =>
+          prev.map((x) =>
+            x.id === m.id
+              ? {
+                  ...x,
+                  home_score: home,
+                  away_score: away,
+                  status: 'finished',
+                }
+              : x
+          )
+        )
+
+        setConfirmAction(null)
+      }
     )
   }
 
-  // stats for admin dashboard
   const totalMatches = matches.length
 
   if (loading) return null
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+
+      {/* STATUS BAR */}
+      {statusMessage && (
+        <div className="w-full bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded">
+          ✓ {statusMessage}
+        </div>
+      )}
+
+      {/* CONFIRM MODAL */}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
+            <p>{confirmText}</p>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmAction(null)}
+                className="px-3 py-1 border rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmAction}
+                className="px-3 py-1 bg-blue-600 text-white rounded"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HEADER */}
-      <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">
-          Admin Panel ⚙️
-        </h1>
-        <span className="text-sm text-gray-500">
-          Manage system
-        </span>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Admin Panel ⚙️</h1>
+        <span className="text-sm text-gray-500">Manage system</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      {/* STATS */}
+      <div className="grid grid-cols-2 gap-4">
         <div className="bg-white border rounded-lg p-3 text-center">
           <div className="text-lg font-bold">{totalMatches}</div>
           <div className="text-xs text-gray-500">Matches</div>
@@ -168,8 +209,8 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* ✅ TAB SWITCHER (NEW) */}
-      <div className="flex gap-2 mb-6">
+      {/* TABS */}
+      <div className="flex gap-2">
         <button
           onClick={() => setActiveTab('matches')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold ${
@@ -193,114 +234,94 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* ✅ MATCHES TAB (UNCHANGED UI) */}
+      {/* MATCHES GRID */}
       {activeTab === 'matches' && (
-        <>
-          {matches.length === 0 ? (
-            <p>Loading matches...</p>
-          ) : (
-            <div className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-              {matches.map((m) => {
-                const date = new Date(m.kickoff_time)
+          {matches.map((m) => {
+            const date = new Date(m.kickoff_time)
 
-                return (
-                  <div
-                    key={m.id}
-                    className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition"
+            return (
+              <div
+                key={m.id}
+                className="bg-white rounded-xl border shadow-sm p-4 space-y-3"
+              >
+
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>
+                    Match {m.match_number}
+                    {m.group_name && ` • ${m.group_name}`}
+                  </span>
+
+                  <span
+                    className={`px-2 py-1 rounded text-xs ${
+                      m.status === 'finished'
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-blue-100 text-blue-600'
+                    }`}
                   >
+                    {m.status}
+                  </span>
+                </div>
 
-                    {/* TOP */}
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="text-sm text-gray-500">
-                        Match {m.match_number}
-                        {m.group_name && ` • ${m.group_name}`}
-                      </div>
+                <div className="text-xs text-gray-400">
+                  {date.toLocaleDateString()} •{' '}
+                  {date.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
 
-                      <span
-                        className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                          m.status === 'finished'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-blue-100 text-blue-600'
-                        }`}
-                      >
-                        {m.status}
-                      </span>
-                    </div>
+                <div className="flex justify-between items-center font-semibold">
 
-                    {/* TIME */}
-                    <div className="text-xs text-gray-400 mb-4">
-                      {date.toLocaleDateString()} •{' '}
-                      {date.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
+                  <span className="w-1/3">{m.home_team}</span>
 
-                    {/* TEAMS */}
-                    <div className="flex justify-between font-bold text-lg text-gray-900 mb-3">
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="number"
+                      value={scores[m.id]?.home || ''}
+                      onChange={(e) =>
+                        handleChange(m.id, 'home', e.target.value)
+                      }
+                      className="w-12 border rounded text-center"
+                    />
 
-                      <span className="w-1/3 font-semibold">
-                        {m.home_team}
-                      </span>
+                    <span>-</span>
 
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="number"
-                          value={scores[m.id]?.home || ''}
-                          onChange={(e) =>
-                            handleChange(m.id, 'home', e.target.value)
-                          }
-                          className="w-14 border rounded text-center p-1"
-                        />
-
-                        <span className="font-bold">-</span>
-
-                        <input
-                          type="number"
-                          value={scores[m.id]?.away || ''}
-                          onChange={(e) =>
-                            handleChange(m.id, 'away', e.target.value)
-                          }
-                          className="w-14 border rounded text-center p-1"
-                        />
-                      </div>
-
-                      <span className="w-1/3 text-right font-semibold">
-                        {m.away_team}
-                      </span>
-                    </div>
-
-                    {/* FINAL SCORE */}
-                    {m.status === 'finished' && (
-                      <div className="text-center text-sm text-green-600 font-semibold mb-3">
-                        Final Score: {m.home_score} - {m.away_score}
-                      </div>
-                    )}
-
-                    {/* ACTION */}
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => saveMatch(m)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                      >
-                        Save Result
-                      </button>
-                    </div>
-
+                    <input
+                      type="number"
+                      value={scores[m.id]?.away || ''}
+                      onChange={(e) =>
+                        handleChange(m.id, 'away', e.target.value)
+                      }
+                      className="w-12 border rounded text-center"
+                    />
                   </div>
-                )
-              })}
 
-            </div>
-          )}
-        </>
+                  <span className="w-1/3 text-right">{m.away_team}</span>
+                </div>
+
+                {m.status === 'finished' && (
+                  <div className="text-center text-sm text-green-600 font-semibold">
+                    Final: {m.home_score} - {m.away_score}
+                  </div>
+                )}
+
+                <button
+                  onClick={() => saveMatch(m)}
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Save Result
+                </button>
+
+              </div>
+            )
+          })}
+
+        </div>
       )}
 
-      {/* ✅ LEAGUES TAB (NEW) */}
-      {activeTab === 'leagues' && (
-        <LeagueManagement />
-      )}
+      {activeTab === 'leagues' && <LeagueManagement />}
     </div>
   )
 }
