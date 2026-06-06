@@ -138,6 +138,9 @@ export default function AdminPage() {
     )
   }
 
+  // stats for admin dashboard
+  const totalMatches = matches.length
+
   if (loading) return null
 
   return (
@@ -151,6 +154,18 @@ export default function AdminPage() {
         <span className="text-sm text-gray-500">
           Manage system
         </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-white border rounded-lg p-3 text-center">
+          <div className="text-lg font-bold">{totalMatches}</div>
+          <div className="text-xs text-gray-500">Matches</div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-3 text-center">
+          <div className="text-lg font-bold">⚙️</div>
+          <div className="text-xs text-gray-500">Admin Active</div>
+        </div>
       </div>
 
       {/* ✅ TAB SWITCHER (NEW) */}
