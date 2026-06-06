@@ -207,6 +207,26 @@ export default function MatchDetails() {
       return
     }
 
+    // ✅ INSTANT UI UPDATE (NEW)
+    setPredictions((prev) => {
+      const updated = prev.filter((p) => p.user_id !== userId)
+
+      return [
+        {
+          id: existing?.id || crypto.randomUUID(),
+          user_id: userId,
+          username:
+            existing?.username ||
+            predictions.find((p) => p.user_id === userId)?.username ||
+            'You',
+          predicted_home: Number(home),
+          predicted_away: Number(away),
+          points: existing?.points ?? 0,
+        },
+        ...updated,
+      ]
+    })
+
     setToast(existing ? 'Updated ✅' : 'Submitted ✅')
     setSaving(false)
     setTimeout(() => setToast(''), 2000)
