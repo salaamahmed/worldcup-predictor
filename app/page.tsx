@@ -7,12 +7,14 @@ import Image from 'next/image'
 
 type Match = {
   id: string
+  match_number: number
   home_team: string
   away_team: string
   kickoff_time: string
   status: string
   home_score?: number | null
   away_score?: number | null
+  group_name?: string | null
 }
 
 type Prediction = {
