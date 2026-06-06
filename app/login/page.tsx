@@ -68,7 +68,7 @@ export default function LoginPage() {
             height={40}
           />
 
-          <h1 className="text-xl font-semibold">
+          <h1 className="text-xl font-semibold sm:text-lg text-gray-900">
             FIFA WC 2026
           </h1>
 
