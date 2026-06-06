@@ -5,12 +5,14 @@ import Image from 'next/image'
 
 type Match = {
   id: string
+  match_number: number
   home_team: string
   away_team: string
   kickoff_time: string
   status: string
   home_score?: number | null
   away_score?: number | null
+  group_name?: string | null
 }
 
 type Prediction = {
@@ -145,6 +147,23 @@ export default function MatchCard({
         )}
 
         {/* TOP INFO */}
+        <div className="flex justify-between text-sm text-gray-500">
+          <span>
+            Match {match.match_number}
+            {match.group_name && ` • ${match.group_name}`}
+          </span>
+
+          <span
+            className={`px-2 py-1 rounded text-xs ${
+              match.status === 'finished'
+                ? 'bg-green-100 text-green-600'
+                : 'bg-blue-100 text-blue-600'
+            }`}
+          >
+            {match.status}
+          </span>
+        </div>
+
         <div className="flex justify-between text-[11px] text-gray-500 mb-2">
           <span>
             {date.toLocaleDateString()} •{' '}
@@ -154,18 +173,6 @@ export default function MatchCard({
             })}
           </span>
 
-          <span
-            className={`
-              text-[10px] font-semibold px-2 py-[2px] rounded
-              ${
-                match.status === 'finished'
-                  ? 'bg-green-100 text-green-600'
-                  : 'bg-blue-100 text-blue-600'
-              }
-            `}
-          >
-            {match.status}
-          </span>
         </div>
 
         {/* TEAMS */}
