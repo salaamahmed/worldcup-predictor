@@ -27,11 +27,19 @@ export default function LeagueManagement() {
   const [newLeagueName, setNewLeagueName] = useState('')
   const [search, setSearch] = useState('')
   const [selectedUser, setSelectedUser] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
 
-  function showMessage(msg: string) {
-    setMessage(msg)
-    setTimeout(() => setMessage(null), 2500)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null)
+  const [confirmText, setConfirmText] = useState('')
+
+  function showStatus(msg: string) {
+    setStatusMessage(msg)
+    setTimeout(() => setStatusMessage(null), 2500)
+  }
+
+  function askConfirm(message: string, action: () => void) {
+    setConfirmText(message)
+    setConfirmAction(() => action)
   }
 
   useEffect(() => {
@@ -41,29 +49,6 @@ export default function LeagueManagement() {
 
   useEffect(() => {
     if (selectedLeague) loadMembers(selectedLeague)
-  }, [selectedLeague])
-
-  // 🔥 REALTIME
-  useEffect(() => {
-    if (!selectedLeague) return
-
-    const channel = supabase
-      .channel('league-members')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'league_members',
-          filter: `league_id=eq.${selectedLeague}`,
-        },
-        () => loadMembers(selectedLeague)
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
   }, [selectedLeague])
 
   async function loadLeagues() {
@@ -101,16 +86,31 @@ export default function LeagueManagement() {
 
   async function createLeague() {
     if (!newLeagueName.trim()) return
-    await supabase.from('leagues').insert({ name: newLeagueName })
+
+    await supabase.from('leagues').insert({
+      name: newLeagueName.trim(),
+    })
+
+    showStatus(`Created league "${newLeagueName}"`)
     setNewLeagueName('')
     loadLeagues()
   }
 
   async function deleteLeague(id: string) {
-    if (!confirm('Delete this league?')) return
-    await supabase.from('leagues').delete().eq('id', id)
-    setSelectedLeague('')
-    loadLeagues()
+    const leagueName = leagues.find((l) => l.id === id)?.name
+
+    askConfirm(`Delete league "${leagueName}"?`, async () => {
+      await supabase.from('leagues').delete().eq('id', id)
+
+      if (selectedLeague === id) {
+        setSelectedLeague('')
+        setMembers([])
+      }
+
+      showStatus(`Deleted league ${leagueName}`)
+      loadLeagues()
+      setConfirmAction(null)
+    })
   }
 
   async function addUserToLeague() {
@@ -120,31 +120,41 @@ export default function LeagueManagement() {
     const leagueName =
       leagues.find((l) => l.id === selectedLeague)?.name || ''
 
-    if (!confirm(`Add ${user?.username} to ${leagueName}?`)) return
+    const exists = members.some((m) => m.user_id === selectedUser)
+    if (exists) {
+      showStatus('User already in league')
+      return
+    }
 
-    await supabase.from('league_members').insert({
-      league_id: selectedLeague,
-      user_id: selectedUser,
+    askConfirm(`Add ${user?.username} to ${leagueName}?`, async () => {
+      await supabase.from('league_members').insert({
+        league_id: selectedLeague,
+        user_id: selectedUser,
+      })
+
+      showStatus(`Added ${user?.username} to ${leagueName}`)
+      setSelectedUser('')
+      loadMembers(selectedLeague)
+      setConfirmAction(null)
     })
-
-    setSelectedUser('')
-    showMessage(`Added ${user?.username} to ${leagueName}`)
-    loadMembers(selectedLeague)
   }
 
   async function removeUser(userId: string) {
     const user = members.find((m) => m.user_id === userId)
+    const leagueName =
+      leagues.find((l) => l.id === selectedLeague)?.name || ''
 
-    if (!confirm(`Remove ${user?.username}?`)) return
+    askConfirm(`Remove ${user?.username}?`, async () => {
+      await supabase
+        .from('league_members')
+        .delete()
+        .eq('league_id', selectedLeague)
+        .eq('user_id', userId)
 
-    await supabase
-      .from('league_members')
-      .delete()
-      .eq('league_id', selectedLeague)
-      .eq('user_id', userId)
-
-    showMessage(`Removed ${user?.username}`)
-    loadMembers(selectedLeague)
+      showStatus(`Removed ${user?.username} from ${leagueName}`)
+      loadMembers(selectedLeague)
+      setConfirmAction(null)
+    })
   }
 
   const selectedLeagueName =
@@ -157,36 +167,78 @@ export default function LeagueManagement() {
   return (
     <div className="space-y-6">
 
-      {message && (
-        <div className="bg-green-100 text-green-700 p-2 rounded text-sm">
-          {message}
+      {/* ✅ FULL WIDTH SUCCESS BAR */}
+      {statusMessage && (
+        <div className="w-full bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded">
+          ✓ {statusMessage}
         </div>
       )}
 
+      {/* CONFIRM MODAL */}
+      {confirmAction && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
+            <p>{confirmText}</p>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmAction(null)}
+                className="px-3 py-1 border rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmAction}
+                className="px-3 py-1 bg-blue-600 text-white rounded"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CREATE LEAGUE */}
       <div className="border p-4 rounded-lg">
         <h2 className="font-bold mb-2">Create League</h2>
+
         <div className="flex gap-2">
           <input
             value={newLeagueName}
             onChange={(e) => setNewLeagueName(e.target.value)}
             className="border p-2 rounded w-full"
           />
-          <button onClick={createLeague} className="bg-green-600 text-white px-3 rounded">
+
+          <button
+            onClick={createLeague}
+            className="bg-green-600 text-white px-3 rounded"
+          >
             Create
           </button>
         </div>
       </div>
 
+      {/* LEAGUES */}
       <div className="border p-4 rounded-lg">
         <h2 className="font-bold mb-2">Leagues</h2>
+
         {leagues.map((l) => (
           <div key={l.id} className="flex justify-between mb-2">
             <span>{l.name}</span>
+
             <div className="flex gap-2">
-              <button onClick={() => setSelectedLeague(l.id)} className="text-blue-600">
+              <button
+                onClick={() => setSelectedLeague(l.id)}
+                className="text-blue-600"
+              >
                 Manage
               </button>
-              <button onClick={() => deleteLeague(l.id)} className="text-red-600">
+
+              <button
+                onClick={() => deleteLeague(l.id)}
+                className="text-red-600"
+              >
                 Delete
               </button>
             </div>
@@ -194,10 +246,11 @@ export default function LeagueManagement() {
         ))}
       </div>
 
+      {/* MEMBERS */}
       {selectedLeague && (
         <div className="border p-4 rounded-lg space-y-4">
 
-          <h2 className="font-bold text-lg">
+          <h2 className="font-bold">
             Managing: <span className="text-blue-600">{selectedLeagueName}</span>
           </h2>
 
@@ -222,16 +275,26 @@ export default function LeagueManagement() {
               ))}
             </select>
 
-            <button onClick={addUserToLeague} className="bg-blue-600 text-white px-3 rounded">
+            <button
+              onClick={addUserToLeague}
+              className="bg-blue-600 text-white px-3 rounded"
+            >
               Add
             </button>
           </div>
 
           <div className="space-y-2">
             {members.map((m) => (
-              <div key={m.user_id} className="flex justify-between border p-2 rounded">
+              <div
+                key={m.user_id}
+                className="flex justify-between border p-2 rounded"
+              >
                 <span>{m.username}</span>
-                <button onClick={() => removeUser(m.user_id)} className="text-red-600">
+
+                <button
+                  onClick={() => removeUser(m.user_id)}
+                  className="text-red-600"
+                >
                   Remove
                 </button>
               </div>
