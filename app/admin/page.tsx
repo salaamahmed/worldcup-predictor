@@ -25,7 +25,9 @@ export default function AdminPage() {
   >({})
   const [activeTab, setActiveTab] = useState<'matches' | 'leagues'>('matches')
 
-  // ✅ NEW (status + confirm)
+  // ✅ NEW TOGGLE STATE
+  const [showUnfinishedOnly, setShowUnfinishedOnly] = useState(false)
+
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null)
   const [confirmText, setConfirmText] = useState('')
@@ -153,6 +155,11 @@ export default function AdminPage() {
 
   const totalMatches = matches.length
 
+  // ✅ FILTER LOGIC
+  const displayedMatches = showUnfinishedOnly
+    ? matches.filter((m) => m.status !== 'finished')
+    : matches
+
   if (loading) return null
 
   return (
@@ -234,11 +241,31 @@ export default function AdminPage() {
         </button>
       </div>
 
+      {/* ✅ TOGGLE (ONLY NEW UI) */}
+      {activeTab === 'matches' && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium">
+            Show only unfinished
+          </span>
+
+          <button
+            onClick={() => setShowUnfinishedOnly((prev) => !prev)}
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              showUnfinishedOnly
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200'
+            }`}
+          >
+            {showUnfinishedOnly ? 'ON' : 'OFF'}
+          </button>
+        </div>
+      )}
+
       {/* MATCHES GRID */}
       {activeTab === 'matches' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-          {matches.map((m) => {
+          {displayedMatches.map((m) => {
             const date = new Date(m.kickoff_time)
 
             return (
