@@ -208,7 +208,7 @@ export default function AdminPage() {
                   ...x,
                   home_score: home,
                   away_score: away,
-                  status: 'FINISHED',
+                  status: 'finished',
                 }
               : x
           )

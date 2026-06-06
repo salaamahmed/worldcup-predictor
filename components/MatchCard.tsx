@@ -180,7 +180,7 @@ export default function MatchCard({
               height={32}
               className="rounded-full"
             />
-            <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
+            <span className="text-xs font-semibold text-gray-900 text-center">
               {match.home_team}
             </span>
           </div>
@@ -207,7 +207,7 @@ export default function MatchCard({
               height={32}
               className="rounded-full"
             />
-            <span className="text-sm font-medium text-gray-900 text-center truncate max-w-[80px]">
+            <span className="text-xs font-semibold text-gray-900 text-center">
               {match.away_team}
             </span>
           </div>

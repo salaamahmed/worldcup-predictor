@@ -28,6 +28,9 @@ export default function MatchesPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [userId, setUserId] = useState<string | null>(null)
 
+  // ✅ NEW
+  const [showUnfinished, setShowUnfinished] = useState(false)
+
   // 🔥 INITIAL LOAD
   useEffect(() => {
     async function load() {
@@ -57,12 +60,11 @@ export default function MatchesPage() {
     load()
   }, [])
 
-  // 🔥 REALTIME UPDATES (FIXED TYPES)
+  // 🔥 REALTIME UPDATES
   useEffect(() => {
     const channel = supabase
       .channel('matches-realtime')
 
-      // ✅ MATCH UPDATES
       .on(
         'postgres_changes',
         {
@@ -82,7 +84,6 @@ export default function MatchesPage() {
         }
       )
 
-      // ✅ PREDICTION UPDATES (FIXED)
       .on(
         'postgres_changes',
         {
@@ -121,6 +122,11 @@ export default function MatchesPage() {
     }
   }, [])
 
+  // ✅ NEW FILTER
+  const filteredMatches = showUnfinished
+    ? matches.filter((m) => m.status !== 'finished')
+    : matches
+
   return (
     <div className="max-w-6xl mx-auto py-4">
 
@@ -139,6 +145,24 @@ export default function MatchesPage() {
         />
       </div>
 
+      {/* ✅ TOGGLE (NEW) */}
+      <div className="mb-4 flex items-center justify-center gap-2 text-sm">
+        <span className="text-xs font-semibold">
+            Hide Completed Matches
+        </span>
+
+        <button
+          onClick={() => setShowUnfinished((prev) => !prev)}
+          className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+            showUnfinished
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700'
+          }`}
+        >
+          {showUnfinished ? 'ON' : 'OFF'}
+        </button>
+      </div>
+
       {/* 🔥 GRID */}
       <div className="
         grid 
@@ -147,7 +171,7 @@ export default function MatchesPage() {
         lg:grid-cols-3 
         gap-3 sm:gap-4
       ">
-        {matches.map((match) => (
+        {filteredMatches.map((match) => (
           <MatchCard
             key={match.id}
             match={match}
