@@ -25,13 +25,12 @@ type LeagueRow = {
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [leagues, setLeagues] = useState<League[]>([])
-  const [selectedLeague, setSelectedLeague] = useState<string>('') // ✅ FIX
+  const [selectedLeague, setSelectedLeague] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
-  // ✅ SINGLE SOURCE OF TRUTH
   async function loadLeaderboard(leagueId: string) {
-    if (!leagueId) return // ✅ FIX (prevents "" UUID error)
+    if (!leagueId) return
 
     const { data, error } = await supabase
       .from('leaderboard_by_league')
@@ -47,7 +46,6 @@ export default function LeaderboardPage() {
     setRows((data as Row[]) || [])
   }
 
-  // 🔥 LOAD USER + LEAGUES + FIRST LEADERBOARD
   useEffect(() => {
     async function init() {
       const { data: userData } = await supabase.auth.getUser()
@@ -59,7 +57,6 @@ export default function LeaderboardPage() {
         return
       }
 
-      // 1️⃣ get league ids
       const { data: memberData } = await supabase
         .from('league_members')
         .select('league_id')
@@ -72,7 +69,6 @@ export default function LeaderboardPage() {
         return
       }
 
-      // 2️⃣ get league names
       const leaguesData: LeagueRow[] = []
 
       for (const id of leagueIds) {
@@ -84,26 +80,19 @@ export default function LeaderboardPage() {
 
         if (!error && data) {
           leaguesData.push(data)
-        } else {
-          console.error('FULL ERROR:', JSON.stringify(error, null, 2))
         }
       }
 
-      const formatted: League[] =
-        leaguesData.map((l) => ({
-          league_id: l.id,
-          league_name: l.name,
-        }))
+      const formatted: League[] = leaguesData.map((l) => ({
+        league_id: l.id,
+        league_name: l.name,
+      }))
 
       setLeagues(formatted)
 
-      console.log('FORMATTED LEAGUES:', formatted)
-
-      // ✅ CRITICAL FIX: safe default
       if (formatted.length > 0) {
         const firstLeague = formatted[0].league_id
         setSelectedLeague(firstLeague)
-
         await loadLeaderboard(firstLeague)
       }
 
@@ -113,9 +102,8 @@ export default function LeaderboardPage() {
     init()
   }, [])
 
-  // 🔥 ONLY handles dropdown changes
   async function handleLeagueChange(leagueId: string) {
-    if (!leagueId) return // ✅ FIX
+    if (!leagueId) return
 
     setSelectedLeague(leagueId)
     setLoading(true)
@@ -142,7 +130,7 @@ export default function LeaderboardPage() {
       {leagues.length > 0 && (
         <div className="mb-4">
           <select
-            value={selectedLeague} // ✅ FIX (no || '')
+            value={selectedLeague}
             onChange={(e) => handleLeagueChange(e.target.value)}
             className="w-full border rounded-lg p-2 text-sm"
           >
@@ -166,19 +154,24 @@ export default function LeaderboardPage() {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
 
+            // ✅ FIXED MOVEMENT LOGIC
             const movementData = (() => {
-              if (r.last_rank == null) {
+              if (r.last_rank == null || r.rank == null) {
                 return { text: '—', color: 'text-gray-400' }
               }
 
-              const diff = r.last_rank - r.rank
-
-              if (diff > 0) {
-                return { text: `↑ ${diff}`, color: 'text-green-600' }
+              if (r.rank < r.last_rank) {
+                return {
+                  text: `↑ ${r.last_rank - r.rank}`,
+                  color: 'text-green-600',
+                }
               }
 
-              if (diff < 0) {
-                return { text: `↓ ${Math.abs(diff)}`, color: 'text-red-600' }
+              if (r.rank > r.last_rank) {
+                return {
+                  text: `↓ ${r.rank - r.last_rank}`,
+                  color: 'text-red-600',
+                }
               }
 
               return { text: '—', color: 'text-gray-400' }

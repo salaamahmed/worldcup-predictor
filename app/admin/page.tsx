@@ -117,6 +117,7 @@ export default function AdminPage() {
     // 🔥 CRITICAL FIX
     if (error || !data || data.length === 0) {
       console.error('SAVE ERROR:', error)
+      console.error('FULL ERROR:', JSON.stringify(error, null, 2))
       alert('Not authorized')
       return
     }
