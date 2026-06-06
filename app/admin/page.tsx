@@ -208,7 +208,7 @@ export default function AdminPage() {
                   ...x,
                   home_score: home,
                   away_score: away,
-                  status: 'finished',
+                  status: 'FINISHED',
                 }
               : x
           )
@@ -312,8 +312,8 @@ export default function AdminPage() {
       {/* ✅ TOGGLE (ONLY NEW UI) */}
       {activeTab === 'matches' && (
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium">
-            Show only unfinished
+          <span className="text-xs font-semibold">
+            Hide Completed Matches
           </span>
 
           <button
