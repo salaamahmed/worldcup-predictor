@@ -228,7 +228,7 @@ export default function MatchCard({
               Your prediction
             </div>
 
-            <div className="font-semibold text-sm">
+            <div className="font-semibold text-sm text-gray-500">
               {prediction.predicted_home} - {prediction.predicted_away}
             </div>
 

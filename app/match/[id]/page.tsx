@@ -61,7 +61,7 @@ export default function MatchDetails() {
   const [toast, setToast] = useState('')
   const [timeLeft, setTimeLeft] = useState('')
 
-  // 🔥 INITIAL LOAD
+  // 🔥 INITIAL LOAD (UNCHANGED)
   useEffect(() => {
     if (!id) return
 
@@ -99,7 +99,7 @@ export default function MatchDetails() {
     load()
   }, [id])
 
-  // 🔥 REALTIME
+  // 🔥 REALTIME (UNCHANGED)
   useEffect(() => {
     if (!id) return
 
@@ -149,7 +149,7 @@ export default function MatchDetails() {
     }
   }, [id])
 
-  // 🔥 COUNTDOWN
+  // 🔥 COUNTDOWN (UNCHANGED)
   useEffect(() => {
     if (!match?.kickoff_time) return
 
@@ -173,7 +173,6 @@ export default function MatchDetails() {
 
   const existing = predictions.find((p) => p.user_id === userId)
 
-  // 🔥 LOCK LOGIC
   const isLocked =
     match
       ? new Date(match.kickoff_time) <= new Date() ||
@@ -215,7 +214,7 @@ export default function MatchDetails() {
       return
     }
 
-    // ✅ INSTANT UI UPDATE (NEW)
+    // 🔥 INSTANT UI UPDATE (UNCHANGED)
     setPredictions((prev) => {
       const updated = prev.filter((p) => p.user_id !== userId)
 
@@ -243,37 +242,64 @@ export default function MatchDetails() {
   const homeTeam = match?.resolved_home_team || match?.home_team
   const awayTeam = match?.resolved_away_team || match?.away_team
 
-  return (
-    <div className="max-w-md mx-auto px-3 py-4 space-y-4">
+  const homeWin =
+    match?.status === 'finished' &&
+    match.home_score != null &&
+    match.away_score != null &&
+    match.home_score > match.away_score
 
+  const awayWin =
+    match?.status === 'finished' &&
+    match.home_score != null &&
+    match.away_score != null &&
+    match.away_score > match.home_score
+
+  return (
+    <div className="max-w-md mx-auto px-4 py-5 space-y-5">
+
+      {/* MATCH */}
       {match && (
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-white rounded-2xl shadow-md p-5">
           <div className="flex items-center justify-between">
 
             <div className="flex flex-col items-center w-1/3">
-              <Image src={getFlag(homeTeam!)} alt="" width={40} height={40} className="rounded-full" />
-              <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
+              <Image src={getFlag(homeTeam!)} alt="" width={44} height={44} className="rounded-full" />
+              <span 
+                className={`"mt-2 text-sm sm:text-base font-semibold text-gray-900 text-center"
+                ${homeWin ? 'text-green-600' : 'text-gray-900'}
+                `}
+                >
                 {homeTeam}
               </span>
             </div>
 
             <div className="text-center">
               {match.status === 'finished' ? (
-                <div className="text-2xl font-bold text-gray-900">
-                  {match.home_score} - {match.away_score}
+                <div className="text-3xl font-bold">
+                  <span className={homeWin ? 'text-green-600' : 'text-gray-900'}>
+                    {match.home_score}
+                  </span>
+                  {' - '}
+                  <span className={awayWin ? 'text-green-600' : 'text-gray-900'}>
+                    {match.away_score}
+                  </span>
                 </div>
               ) : (
-                <div className="text-gray-400 font-bold text-sm">VS</div>
+                <div className="text-gray-500 font-bold text-sm">VS</div>
               )}
 
-              <div className="text-sm font-medium text-orange-600">
+              <div className="text-sm font-semibold text-orange-600 mt-1">
                 {timeLeft}
               </div>
             </div>
 
             <div className="flex flex-col items-center w-1/3">
-              <Image src={getFlag(awayTeam!)} alt="" width={40} height={40} className="rounded-full" />
-              <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
+              <Image src={getFlag(awayTeam!)} alt="" width={44} height={44} className="rounded-full" />
+              <span 
+                className={`"mt-2 text-sm sm:text-base font-semibold text-gray-900 text-center"
+                ${awayWin ? 'text-green-600' : 'text-gray-900'}
+                `}
+                >
                 {awayTeam}
               </span>
             </div>
@@ -282,42 +308,42 @@ export default function MatchDetails() {
         </div>
       )}
 
-      {/* LOCK BANNER */}
+      {/* LOCK */}
       {isLocked && (
-        <div className="text-center text-xs text-red-500 font-medium">
+        <div className="text-center text-sm font-semibold text-red-600">
           🔒 Predictions closed
         </div>
       )}
 
       {/* INPUT */}
-      <div className="bg-white border rounded-xl p-4 shadow-sm">
-        <h2 className="text-sm font-semibold mb-3 text-center">
+      <div className="bg-white border rounded-2xl p-5 shadow-sm">
+        <h2 className="text-base font-semibold mb-4 text-center text-gray-900">
           {existing ? 'Update Prediction' : 'Make Prediction'}
         </h2>
 
-        <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="flex items-center justify-center gap-4 mb-5">
           <input
             disabled={isLocked}
             value={home}
             onChange={(e) => setHome(e.target.value)}
             type="number"
-            className="w-14 h-12 border rounded-lg text-center text-lg disabled:bg-gray-100"
+            className="w-16 h-14 border rounded-xl text-center text-xl font-semibold disabled:bg-gray-100"
           />
-          <span className="font-bold">-</span>
+          <span className="font-bold text-lg">-</span>
           <input
             disabled={isLocked}
             value={away}
             onChange={(e) => setAway(e.target.value)}
             type="number"
-            className="w-14 h-12 border rounded-lg text-center text-lg disabled:bg-gray-100"
+            className="w-16 h-14 border rounded-xl text-center text-xl font-semibold disabled:bg-gray-100"
           />
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={saving || isLocked}
-          className={`w-full py-3 rounded-lg text-white font-medium transition
-            ${isLocked ? 'bg-gray-400' : 'bg-blue-700 hover:bg-blue-800'}
+          className={`w-full py-3 rounded-xl text-white font-semibold text-base transition
+            ${isLocked ? 'bg-gray-400' : 'bg-blue-600 active:scale-95'}
           `}
         >
           {isLocked
@@ -332,33 +358,35 @@ export default function MatchDetails() {
 
       {/* PREDICTIONS */}
       <div>
-        <h2 className="text-sm font-semibold mb-2">Predictions</h2>
+        <h2 className="text-base font-semibold mb-3 text-gray-900">
+          Predictions
+        </h2>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {predictions.map((p) => (
             <div
               key={p.id}
               className={`
-                flex justify-between items-center p-3 rounded-lg border text-sm
-                ${p.user_id === userId ? 'bg-blue-50 border-blue-400' : 'bg-white'}
+                flex justify-between items-center p-3 rounded-xl border text-sm
+                ${p.user_id === userId ? 'bg-blue-50 border-blue-400' : 'bg-white border-gray-200'}
               `}
             >
-              <div className="font-medium text-xs flex items-center gap-1">
+              <div className="font-medium text-sm text-gray-900 flex items-center gap-1">
                 {p.username}
                 {p.user_id === userId && (
-                  <span className="text-[10px] text-blue-600 font-semibold">
+                  <span className="text-xs text-blue-600 font-semibold">
                     (You)
                   </span>
                 )}
               </div>
 
               <div className="text-right">
-                <div className="font-semibold">
+                <div className="font-semibold text-gray-900">
                   {p.predicted_home} - {p.predicted_away}
                 </div>
 
                 {match?.status === 'finished' && (
-                  <div className="text-[10px] text-blue-600 font-medium">
+                  <div className="text-xs text-blue-600 font-medium">
                     {p.points ?? 0} pts
                   </div>
                 )}
@@ -368,8 +396,9 @@ export default function MatchDetails() {
         </div>
       </div>
 
+      {/* TOAST */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm shadow">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-xl text-sm shadow">
           {toast}
         </div>
       )}

@@ -205,7 +205,7 @@ export default function MatchesPage() {
       {/* TOGGLE */}
       {activeTab === 'group' && (
         <div className="mb-4 flex items-center justify-center gap-2 text-sm">
-          <span className="text-xs font-semibold">
+          <span className="text-xs font-semibold text-sm text-gray-500">
             Hide Completed Matches
           </span>
 

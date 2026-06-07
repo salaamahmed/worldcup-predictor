@@ -32,16 +32,10 @@ export default function LeaderboardPage() {
   async function loadLeaderboard(leagueId: string) {
     if (!leagueId) return
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('leaderboard_by_league')
       .select('*')
       .eq('league_id', leagueId)
-
-    if (error) {
-      console.error(error)
-      setRows([])
-      return
-    }
 
     setRows((data as Row[]) || [])
   }
@@ -72,15 +66,13 @@ export default function LeaderboardPage() {
       const leaguesData: LeagueRow[] = []
 
       for (const id of leagueIds) {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('leagues')
           .select('id, name')
           .eq('id', id)
           .single()
 
-        if (!error && data) {
-          leaguesData.push(data)
-        }
+        if (data) leaguesData.push(data)
       }
 
       const formatted: League[] = leaguesData.map((l) => ({
@@ -107,9 +99,7 @@ export default function LeaderboardPage() {
 
     setSelectedLeague(leagueId)
     setLoading(true)
-
     await loadLeaderboard(leagueId)
-
     setLoading(false)
   }
 
@@ -121,40 +111,66 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-3 py-4">
+    <div className="max-w-md mx-auto px-4 py-4">
 
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 text-center">
+      {/* HEADER */}
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
         Leaderboard 🏆
       </h1>
 
+      {/* LEAGUE SELECT */}
       {leagues.length > 0 && (
-        <div className="mb-4">
-          <select
-            value={selectedLeague}
-            onChange={(e) => handleLeagueChange(e.target.value)}
-            className="w-full border rounded-lg p-2 text-sm"
-          >
-            {leagues.map((l) => (
-              <option key={l.league_id} value={l.league_id}>
-                {l.league_name}
-              </option>
-            ))}
-          </select>
+        <div className="relative mb-4">
+
+        <select
+          value={selectedLeague}
+          onChange={(e) => handleLeagueChange(e.target.value)}
+          className="
+            w-full h-12 px-4 pr-10
+            rounded-xl
+            text-sm sm:text-base text-gray-900
+            bg-gray-50
+            border border-gray-200
+            shadow-sm
+
+            appearance-none
+            cursor-pointer
+
+            focus:outline-none
+            focus:ring-2 focus:ring-blue-500
+            focus:border-blue-500
+            focus:bg-white
+
+            transition
+          "
+        >
+          {leagues.map((l) => (
+            <option key={l.league_id} value={l.league_id}>
+              {l.league_name}
+            </option>
+          ))}
+        </select>
+
+        {/* Custom Arrow */}
+        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+          ▼
         </div>
+
+      </div>
       )}
 
+      {/* STATES */}
       {loading ? (
-        <p className="text-center text-gray-500">Loading...</p>
+        <p className="text-center text-gray-500 text-sm">Loading...</p>
       ) : rows.length === 0 ? (
-        <p className="text-center text-gray-500">No data yet</p>
+        <p className="text-center text-gray-500 text-sm">No data yet</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
 
           {rows.map((r, i) => {
             const isTop3 = i < 3
             const isMe = r.user_id === userId
 
-            // ✅ FIXED MOVEMENT LOGIC
             const movementData = (() => {
               if (r.last_rank == null || r.rank == null) {
                 return { text: '—', color: 'text-gray-400' }
@@ -182,35 +198,40 @@ export default function LeaderboardPage() {
                 key={r.user_id}
                 className={`
                   flex items-center justify-between
-                  p-3 rounded-xl border
-                  bg-white shadow-sm text-sm
+                  p-3 sm:p-4
+                  rounded-xl border border-gray-200
+                  bg-white shadow-sm
                   transition
                   ${isTop3 ? 'bg-yellow-50 border-yellow-300' : ''}
                   ${isMe ? 'ring-2 ring-blue-500' : ''}
                 `}
               >
 
+                {/* LEFT */}
                 <div className="flex items-center gap-3">
-                  <div className="text-base font-bold w-6 text-center">
+
+                  <div className="text-base sm:text-lg font-bold w-6 text-center text-gray-900">
                     {getMedal(i)}
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2 font-semibold text-sm text-gray-900">
+                    <div className="flex items-center gap-2 font-semibold text-sm sm:text-base text-gray-900">
                       {r.username}
                       <span className={`text-xs ${movementData.color}`}>
                         {movementData.text}
                       </span>
                     </div>
 
-                    <div className="text-[10px] text-gray-500">
+                    <div className="text-xs text-gray-600">
                       {r.exact_scores} exact
                     </div>
                   </div>
+
                 </div>
 
+                {/* RIGHT */}
                 <div className="text-right">
-                  <div className="font-bold text-base text-gray-900">
+                  <div className="font-bold text-lg text-gray-900">
                     {r.total_points}
                   </div>
                   <div className="text-xs text-gray-600">

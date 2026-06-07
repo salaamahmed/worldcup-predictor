@@ -21,9 +21,11 @@ export default function LayoutClient({
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User>(null)
 
+
   const isAuthPage =
     pathname === '/login' ||
     pathname === '/register' ||
+    pathname === '/forgot-password' ||
     pathname === '/reset-password'
 
   useEffect(() => {
@@ -77,6 +79,29 @@ export default function LayoutClient({
 
 // 🔥 NEW COMPONENT: Bottom Navigation
 function BottomNav({ pathname }: { pathname: string }) {
+
+  const [username, setUsername] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: userData } = await supabase.auth.getUser()
+
+      if (!userData.user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, is_admin')
+        .eq('id', userData.user.id)
+        .single()
+
+      setUsername(profile?.username ?? 'User')
+      setIsAdmin(profile?.is_admin ?? false)
+    }
+
+    loadUser()
+  }, [])
+  
   return (
     <div className="
       fixed bottom-0 left-0 right-0
@@ -112,17 +137,20 @@ function BottomNav({ pathname }: { pathname: string }) {
       </Link>
 
       {/* ADMIN */}
-      <Link
-        href="/admin"
-        className={`flex flex-col items-center text-xs ${
-          pathname === '/admin'
-            ? 'text-blue-600 font-semibold'
-            : 'text-gray-500'
-        }`}
-      >
-        <span className="text-lg">⚙️</span>
-        Admin
-      </Link>
+      {isAdmin && (
+          <Link
+            href="/admin"
+            className={`flex flex-col items-center text-xs ${
+              pathname === '/admin'
+                ? 'text-blue-600 font-semibold'
+                : 'text-gray-500'
+            }`}
+          >
+            <span className="text-lg">⚙️</span>
+            Admin
+          </Link>
+         )}
+      
 
     </div>
   )

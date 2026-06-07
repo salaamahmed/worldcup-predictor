@@ -22,7 +22,6 @@ export default function LoginPage() {
 
     let emailToUse = identifier
 
-    // username → email
     if (!identifier.includes('@')) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -55,10 +54,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4">
 
-      {/* 🔥 CARD */}
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-5">
 
-        {/* 🔥 HEADER / BRAND */}
+        {/* HEADER */}
         <div className="flex flex-col items-center gap-2">
 
           <Image
@@ -68,23 +66,25 @@ export default function LoginPage() {
             height={40}
           />
 
-          <h1 className="text-xl font-semibold sm:text-lg text-gray-900">
+          <h1 className="text-xl sm:text-lg font-semibold text-gray-900">
             FIFA WC 2026
           </h1>
 
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             Sign in to continue
           </p>
         </div>
 
-        {/* 🔥 INPUTS */}
+        {/* INPUTS */}
         <div className="space-y-3">
 
           <input
             className="
               w-full h-12 px-3
-              border rounded-lg
-              text-sm
+              border border-gray-300
+              rounded-lg
+              text-base text-gray-900
+              placeholder:text-gray-500
               focus:outline-none focus:ring-2 focus:ring-blue-500
             "
             placeholder="Email or Username"
@@ -95,8 +95,10 @@ export default function LoginPage() {
             type="password"
             className="
               w-full h-12 px-3
-              border rounded-lg
-              text-sm
+              border border-gray-300
+              rounded-lg
+              text-base text-gray-900
+              placeholder:text-gray-500
               focus:outline-none focus:ring-2 focus:ring-blue-500
             "
             placeholder="Password"
@@ -104,14 +106,14 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* 🔥 LOGIN BUTTON */}
+        {/* BUTTON */}
         <button
           onClick={login}
           disabled={loading}
           className="
             w-full h-12
             bg-blue-600 text-white
-            rounded-lg font-medium
+            rounded-lg font-medium text-base
             active:scale-95 transition
             disabled:opacity-60
           "
@@ -119,19 +121,19 @@ export default function LoginPage() {
           {loading ? 'Signing in...' : 'Login'}
         </button>
 
-        {/* 🔥 LINKS */}
-        <div className="text-sm text-center space-y-2">
+        {/* LINKS */}
+        <div className="text-sm text-center space-y-2 text-gray-700">
 
           <p>
             Don’t have an account?{' '}
-            <Link href="/register" className="text-blue-600 font-medium">
+            <Link href="/register" className="text-blue-600 font-semibold">
               Register
             </Link>
           </p>
 
           <Link
             href="/forgot-password"
-            className="text-blue-600 block"
+            className="text-blue-600 block font-medium"
           >
             Forgot Password?
           </Link>

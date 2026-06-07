@@ -36,7 +36,7 @@ export default function Navbar() {
   return (
     <div className="
       sticky top-0 z-50
-      bg-white border-b
+      bg-white border-b border-gray-200
       px-3 py-2
       flex items-center justify-between
     ">
@@ -50,7 +50,7 @@ export default function Navbar() {
             width={24}
             height={24}
           />
-          <span className="font-bold text-base sm:text-lg text-gray-900">
+          <span className="font-semibold text-base sm:text-lg text-gray-900">
             FIFA WC 2026
           </span>
         </Link>
@@ -59,23 +59,30 @@ export default function Navbar() {
       {/* RIGHT: USER + ADMIN + LOGOUT */}
       <div className="flex items-center gap-3">
 
-        {/* Admin link (ONLY if admin) */}
+        {/* Admin link (ONLY if admin)
         {isAdmin && (
-          <Link
-            href="/admin"
-            className="text-sm font-medium text-gray-800"
+          <button
+            onClick={() => window.location.href = '/admin'}
+            className="
+              text-sm sm:text-base font-medium
+              text-blue-600
+              bg-blue-50
+              px-3 py-2
+              rounded-lg
+              active:scale-95 transition
+            "
           >
             Admin
-          </Link>
-        )}
+          </button>
+         )} */}
 
         {/* Username */}
-        <span className="text-sm font-medium text-gray-800 max-w-[100px] truncate flex items-center gap-1">
+        <span className="text-sm sm:text-base font-medium text-gray-800 max-w-[110px] truncate flex items-center gap-1">
           👤 {username}
 
           {/* Admin badge */}
           {isAdmin && (
-            <span className="text-[10px] bg-blue-600 text-white px-1.5 py-[1px] rounded">
+            <span className="text-[8px] bg-blue-800 text-white px-1.5 py-[1px] rounded">
               ADMIN
             </span>
           )}
@@ -85,10 +92,11 @@ export default function Navbar() {
         <button
           onClick={handleLogout}
           className="
-            text-sm font-medium
+            text-sm sm:text-base font-medium
             text-red-600
             bg-red-50
-            px-3 py-1.5 rounded-lg
+            px-3 py-2
+            rounded-lg
             active:scale-95 transition
           "
         >

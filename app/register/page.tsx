@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('')
@@ -23,7 +24,6 @@ export default function RegisterPage() {
       return
     }
 
-    // 🔍 Check username uniqueness
     const { data: existing } = await supabase
       .from('profiles')
       .select('*')
@@ -35,7 +35,6 @@ export default function RegisterPage() {
       return
     }
 
-    // 🔐 Create user (✅ FIX: include username in metadata)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -54,56 +53,119 @@ export default function RegisterPage() {
     const user = data.user
     if (!user) return
 
-    // ❌ REMOVED: retry/update logic (no longer needed)
-
     alert('Account created!')
     router.push('/login')
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-md w-80">
-        <h1 className="text-xl font-bold mb-4 text-center">Register</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4">
 
-        <input
-          className="w-full p-2 border rounded mb-3"
-          placeholder="Username"
-          onChange={(e) => setUsername(e.target.value)}
-        />
+      {/* CARD */}
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-5">
 
-        <input
-          className="w-full p-2 border rounded mb-3"
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        {/* HEADER / BRAND */}
+        <div className="flex flex-col items-center gap-2">
 
-        <input
-          type="password"
-          className="w-full p-2 border rounded mb-3"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <Image
+            src="/FIFA26.png"
+            alt="World Cup"
+            width={40}
+            height={40}
+          />
 
-        <input
-          type="password"
-          className="w-full p-2 border rounded mb-4"
-          placeholder="Confirm Password"
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+          <h1 className="text-xl sm:text-lg font-semibold text-gray-900">
+            FIFA WC 2026
+          </h1>
 
+          <p className="text-sm text-gray-600">
+            Create your account
+          </p>
+        </div>
+
+        {/* INPUTS */}
+        <div className="space-y-3">
+
+          <input
+            className="
+              w-full h-12 px-3
+              border border-gray-300
+              rounded-lg
+              text-base text-gray-900
+              placeholder:text-gray-500
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "
+            placeholder="Username"
+            onChange={(e) => setUsername(e.target.value)}
+          />
+
+          <input
+            className="
+              w-full h-12 px-3
+              border border-gray-300
+              rounded-lg
+              text-base text-gray-900
+              placeholder:text-gray-500
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            type="password"
+            className="
+              w-full h-12 px-3
+              border border-gray-300
+              rounded-lg
+              text-base text-gray-900
+              placeholder:text-gray-500
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <input
+            type="password"
+            className="
+              w-full h-12 px-3
+              border border-gray-300
+              rounded-lg
+              text-base text-gray-900
+              placeholder:text-gray-500
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "
+            placeholder="Confirm Password"
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </div>
+
+        {/* BUTTON */}
         <button
           onClick={register}
-          className="w-full bg-green-600 text-white py-2 rounded mb-3 hover:bg-green-700"
+          className="
+            w-full h-12
+            bg-green-600 text-white
+            rounded-lg font-medium text-base
+            active:scale-95 transition
+            hover:bg-green-700
+          "
         >
           Register
         </button>
 
-        <p className="text-sm text-center">
-          Already have an account?{' '}
-          <Link href="/login" className="text-blue-600">
-            Login
-          </Link>
-        </p>
+        {/* LINKS */}
+        <div className="text-sm text-center space-y-2 text-gray-700">
+
+          <p>
+            Already have an account?{' '}
+            <Link href="/login" className="text-blue-600 font-semibold">
+              Login
+            </Link>
+          </p>
+
+        </div>
+
       </div>
     </div>
   )
