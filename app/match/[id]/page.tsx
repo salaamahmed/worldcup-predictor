@@ -14,6 +14,8 @@ type Match = {
   away_score: number | null
   status: string | null
   kickoff_time: string
+  resolved_home_team?: string
+  resolved_away_team?: string
 }
 
 type Prediction = {
@@ -69,7 +71,7 @@ export default function MatchDetails() {
       setUserId(uid)
 
       const { data: matchData } = await supabase
-        .from('matches')
+        .from('resolved_matches')
         .select('*')
         .eq('id', id)
         .single()
@@ -111,8 +113,14 @@ export default function MatchDetails() {
           table: 'matches',
           filter: `id=eq.${id}`,
         },
-        (payload) => {
-          setMatch(payload.new as Match)
+        async () => {
+          const { data } = await supabase
+            .from('resolved_matches')
+            .select('*')
+            .eq('id', id)
+            .single()
+
+          setMatch(data)
         }
       )
       .on(
@@ -232,6 +240,9 @@ export default function MatchDetails() {
     setTimeout(() => setToast(''), 2000)
   }
 
+  const homeTeam = match?.resolved_home_team || match?.home_team
+  const awayTeam = match?.resolved_away_team || match?.away_team
+
   return (
     <div className="max-w-md mx-auto px-3 py-4 space-y-4">
 
@@ -240,9 +251,9 @@ export default function MatchDetails() {
           <div className="flex items-center justify-between">
 
             <div className="flex flex-col items-center w-1/3">
-              <Image src={getFlag(match.home_team)} alt="" width={40} height={40} className="rounded-full" />
+              <Image src={getFlag(homeTeam!)} alt="" width={40} height={40} className="rounded-full" />
               <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
-                {match.home_team}
+                {homeTeam}
               </span>
             </div>
 
@@ -261,9 +272,9 @@ export default function MatchDetails() {
             </div>
 
             <div className="flex flex-col items-center w-1/3">
-              <Image src={getFlag(match.away_team)} alt="" width={40} height={40} className="rounded-full" />
+              <Image src={getFlag(awayTeam!)} alt="" width={40} height={40} className="rounded-full" />
               <span className="mt-1 text-sm font-semibold text-gray-900 text-center truncate">
-                {match.away_team}
+                {awayTeam}
               </span>
             </div>
 
