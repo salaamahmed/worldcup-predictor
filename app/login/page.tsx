@@ -112,7 +112,7 @@ export default function LoginPage() {
           disabled={loading}
           className="
             w-full h-12
-            bg-blue-600 text-white
+            bg-blue-800 text-white
             rounded-lg font-medium text-base
             active:scale-95 transition
             disabled:opacity-60
@@ -126,14 +126,14 @@ export default function LoginPage() {
 
           <p>
             Don’t have an account?{' '}
-            <Link href="/register" className="text-blue-600 font-semibold">
+            <Link href="/register" className="text-blue-800 font-semibold">
               Register
             </Link>
           </p>
 
           <Link
             href="/forgot-password"
-            className="text-blue-600 block font-medium"
+            className="text-blue-800 block font-medium"
           >
             Forgot Password?
           </Link>

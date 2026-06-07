@@ -115,7 +115,7 @@ function BottomNav({ pathname }: { pathname: string }) {
         href="/"
         className={`flex flex-col items-center text-xs ${
           pathname === '/'
-            ? 'text-blue-600 font-semibold'
+            ? 'text-blue-800 font-semibold'
             : 'text-gray-500'
         }`}
       >
@@ -128,7 +128,7 @@ function BottomNav({ pathname }: { pathname: string }) {
         href="/leaderboard"
         className={`flex flex-col items-center text-xs ${
           pathname === '/leaderboard'
-            ? 'text-blue-600 font-semibold'
+            ? 'text-blue-800 font-semibold'
             : 'text-gray-500'
         }`}
       >
@@ -142,7 +142,7 @@ function BottomNav({ pathname }: { pathname: string }) {
             href="/admin"
             className={`flex flex-col items-center text-xs ${
               pathname === '/admin'
-                ? 'text-blue-600 font-semibold'
+                ? 'text-blue-800 font-semibold'
                 : 'text-gray-500'
             }`}
           >

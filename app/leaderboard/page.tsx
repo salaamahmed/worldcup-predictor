@@ -179,14 +179,14 @@ export default function LeaderboardPage() {
               if (r.rank < r.last_rank) {
                 return {
                   text: `↑ ${r.last_rank - r.rank}`,
-                  color: 'text-green-600',
+                  color: 'text-green-800',
                 }
               }
 
               if (r.rank > r.last_rank) {
                 return {
                   text: `↓ ${r.rank - r.last_rank}`,
-                  color: 'text-red-600',
+                  color: 'text-red-800',
                 }
               }
 

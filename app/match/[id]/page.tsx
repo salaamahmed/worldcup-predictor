@@ -29,20 +29,64 @@ type Prediction = {
 
 function getFlag(team: string) {
   const map: Record<string, string> = {
-    Mexico: 'mx', Canada: 'ca', USA: 'us', Brazil: 'br', Argentina: 'ar',
-    Uruguay: 'uy', Paraguay: 'py', Chile: 'cl', Colombia: 'co', Peru: 'pe',
-    Haiti: 'ht', 'South Africa': 'za', Morocco: 'ma', Tunisia: 'tn',
-    Senegal: 'sn', Ghana: 'gh', Nigeria: 'ng', 'Korea Republic': 'kr',
-    Japan: 'jp', China: 'cn', Iran: 'ir', Qatar: 'qa', 'Saudi Arabia': 'sa',
-    Australia: 'au', Czechia: 'cz', Germany: 'de', France: 'fr', Spain: 'es',
-    Italy: 'it', Netherlands: 'nl', Belgium: 'be', Portugal: 'pt',
-    Switzerland: 'ch', Croatia: 'hr', 'Bosnia and Herzegovina': 'ba',
-    Scotland: 'gb-sct', Türkiye: 'tr', Curaçao: 'cw',
-    "Côte d'Ivoire": 'ci', Ecuador: 'ec', Sweden: 'se', Egypt: 'eg',
-    'Cabo Verde': 'cv', 'IR Iran': 'ir', 'New Zealand': 'nz',
-    Iraq: 'iq', Norway: 'no', Algeria: 'dz', Austria: 'at',
-    Jordan: 'jo', 'Congo DR': 'cg', England: 'gb-eng',
-    Panama: 'pa', Uzbekistan: 'uz',
+    Mexico: 'mx',
+    Canada: 'ca',
+    USA: 'us',
+    Brazil: 'br',
+    Argentina: 'ar',
+    Uruguay: 'uy',
+    Paraguay: 'py',
+    Chile: 'cl',
+    Colombia: 'co',
+    Peru: 'pe',
+    Haiti: 'ht',
+
+    'South Africa': 'za',
+    Morocco: 'ma',
+    Tunisia: 'tn',
+    Senegal: 'sn',
+    Ghana: 'gh',
+    Nigeria: 'ng',
+
+    'Korea Republic': 'kr',
+    Japan: 'jp',
+    China: 'cn',
+    Iran: 'ir',
+    Qatar: 'qa',
+    'Saudi Arabia': 'sa',
+    Australia: 'au',
+
+    Czechia: 'cz',
+    Germany: 'de',
+    France: 'fr',
+    Spain: 'es',
+    Italy: 'it',
+    Netherlands: 'nl',
+    Belgium: 'be',
+    Portugal: 'pt',
+    Switzerland: 'ch',
+    Croatia: 'hr',
+    'Bosnia and Herzegovina': 'ba',
+    Scotland: 'gb-sct',
+    Türkiye: 'tr',
+
+    Curaçao: 'cw',
+    "Côte d'Ivoire": 'ci',
+    Ecuador: 'ec',
+    Sweden: 'se',
+    Egypt: 'eg',
+    'Cabo Verde': 'cv',
+    'IR Iran': 'ir',
+    'New Zealand': 'nz',
+    Iraq: 'iq',
+    Norway: 'no',
+    Algeria: 'dz',
+    Austria: 'at',
+    Jordan: 'jo',
+    'Congo DR': 'cg',
+    England: 'gb-eng',
+    Panama: 'pa',
+    Uzbekistan: 'uz',
   }
 
   return `https://flagcdn.com/w40/${map[team] || 'un'}.png`
@@ -343,7 +387,7 @@ export default function MatchDetails() {
           onClick={handleSubmit}
           disabled={saving || isLocked}
           className={`w-full py-3 rounded-xl text-white font-semibold text-base transition
-            ${isLocked ? 'bg-gray-400' : 'bg-blue-600 active:scale-95'}
+            ${isLocked ? 'bg-gray-400' : 'bg-blue-800 active:scale-95'}
           `}
         >
           {isLocked
@@ -374,7 +418,7 @@ export default function MatchDetails() {
               <div className="font-medium text-sm text-gray-900 flex items-center gap-1">
                 {p.username}
                 {p.user_id === userId && (
-                  <span className="text-xs text-blue-600 font-semibold">
+                  <span className="text-xs text-blue-800 font-semibold">
                     (You)
                   </span>
                 )}
@@ -386,7 +430,7 @@ export default function MatchDetails() {
                 </div>
 
                 {match?.status === 'finished' && (
-                  <div className="text-xs text-blue-600 font-medium">
+                  <div className="text-xs text-blue-800 font-medium">
                     {p.points ?? 0} pts
                   </div>
                 )}

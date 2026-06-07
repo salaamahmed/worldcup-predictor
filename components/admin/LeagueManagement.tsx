@@ -191,7 +191,7 @@ export default function LeagueManagement() {
 
               <button
                 onClick={confirmAction}
-                className="px-3 py-1 bg-blue-600 text-white rounded"
+                className="px-3 py-1 bg-blue-800 text-white rounded"
               >
                 Confirm
               </button>
@@ -216,7 +216,7 @@ export default function LeagueManagement() {
 
           <button
             onClick={createLeague}
-            className="bg-green-600 text-white px-3 rounded"
+            className="bg-green-800 text-white px-3 rounded"
           >
             Create
           </button>
@@ -234,14 +234,14 @@ export default function LeagueManagement() {
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedLeague(l.id)}
-                className="text-blue-600"
+                className="bg-blue-800 text-white px-3 rounded"
               >
                 Manage
               </button>
 
               <button
                 onClick={() => deleteLeague(l.id)}
-                className="text-red-600"
+                className="bg-red-800 text-white px-3 rounded"
               >
                 Delete
               </button>
@@ -255,7 +255,7 @@ export default function LeagueManagement() {
         <div className="border p-4 rounded-lg space-y-4">
 
           <h2 className="font-bold">
-            Managing: <span className="text-blue-600">{selectedLeagueName}</span>
+            Managing: <span className="text-blue-800">{selectedLeagueName}</span>
           </h2>
 
           <input
@@ -281,7 +281,7 @@ export default function LeagueManagement() {
 
             <button
               onClick={addUserToLeague}
-              className="bg-blue-600 text-white px-3 rounded"
+              className="bg-blue-800 text-white px-3 rounded"
             >
               Add
             </button>
@@ -297,7 +297,7 @@ export default function LeagueManagement() {
 
                 <button
                   onClick={() => removeUser(m.user_id)}
-                  className="text-red-600"
+                  className="bg-red-800 text-white px-3 rounded"
                 >
                   Remove
                 </button>

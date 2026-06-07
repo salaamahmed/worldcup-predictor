@@ -156,8 +156,8 @@ export default function MatchCard({
           <span
             className={`px-2 py-1 rounded text-xs ${
               match.status === 'finished'
-                ? 'bg-green-100 text-green-600'
-                : 'bg-blue-100 text-blue-600'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-blue-100 text-blue-800'
             }`}
           >
             {match.status}
@@ -228,12 +228,12 @@ export default function MatchCard({
               Your prediction
             </div>
 
-            <div className="font-semibold text-sm text-gray-500">
+            <div className="font-semibold text-sm sm:text-sm text-gray-500">
               {prediction.predicted_home} - {prediction.predicted_away}
             </div>
 
             {match.status === 'finished' && (
-              <div className="text-[11px] mt-1 font-semibold text-blue-600">
+              <div className="text-[11px] mt-1 sm:text-sm font-semibold text-blue-800">
                 {prediction.points ?? 0} pts
               </div>
             )}

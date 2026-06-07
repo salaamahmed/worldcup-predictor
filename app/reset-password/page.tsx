@@ -96,7 +96,7 @@ export default function ResetPassword() {
           onClick={updatePassword}
           className="
             w-full h-12
-            bg-blue-600 text-white
+            bg-blue-800 text-white
             rounded-lg font-medium text-base
             active:scale-95 transition
             hover:bg-blue-700
@@ -109,7 +109,7 @@ export default function ResetPassword() {
         <div className="text-sm text-center text-gray-700">
           <Link
             href="/login"
-            className="text-blue-600 font-semibold"
+            className="text-blue-800 font-semibold"
           >
             ← Back to Login
           </Link>

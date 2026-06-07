@@ -183,7 +183,7 @@ export default function MatchesPage() {
           onClick={() => setActiveTab('group')}
           className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
             activeTab === 'group'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-blue-800 text-white'
               : 'bg-gray-200 text-gray-700'
           }`}
         >
@@ -194,7 +194,7 @@ export default function MatchesPage() {
           onClick={() => setActiveTab('knockout')}
           className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
             activeTab === 'knockout'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-blue-800 text-white'
               : 'bg-gray-200 text-gray-700'
           }`}
         >
@@ -213,7 +213,7 @@ export default function MatchesPage() {
             onClick={() => setShowUnfinished((prev) => !prev)}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
               showUnfinished
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-800 text-white'
                 : 'bg-gray-200 text-gray-700'
             }`}
           >
@@ -286,7 +286,8 @@ export default function MatchesPage() {
         }
         className="
           fixed bottom-20 right-4
-          bg-blue-600 text-white
+          z-[999]
+          bg-blue-800 text-white
           w-12 h-12 rounded-full
           flex items-center justify-center
           text-xl

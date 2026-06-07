@@ -59,23 +59,6 @@ export default function Navbar() {
       {/* RIGHT: USER + ADMIN + LOGOUT */}
       <div className="flex items-center gap-3">
 
-        {/* Admin link (ONLY if admin)
-        {isAdmin && (
-          <button
-            onClick={() => window.location.href = '/admin'}
-            className="
-              text-sm sm:text-base font-medium
-              text-blue-600
-              bg-blue-50
-              px-3 py-2
-              rounded-lg
-              active:scale-95 transition
-            "
-          >
-            Admin
-          </button>
-         )} */}
-
         {/* Username */}
         <span className="text-sm sm:text-base font-medium text-gray-800 max-w-[110px] truncate flex items-center gap-1">
           👤 {username}

@@ -145,7 +145,7 @@ export default function RegisterPage() {
           onClick={register}
           className="
             w-full h-12
-            bg-green-600 text-white
+            bg-green-800 text-white
             rounded-lg font-medium text-base
             active:scale-95 transition
             hover:bg-green-700
@@ -159,7 +159,7 @@ export default function RegisterPage() {
 
           <p>
             Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 font-semibold">
+            <Link href="/login" className="text-blue-800 font-semibold">
               Login
             </Link>
           </p>

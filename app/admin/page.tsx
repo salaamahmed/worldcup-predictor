@@ -210,7 +210,7 @@ export default function AdminPage() {
               <button onClick={() => setConfirmAction(null)} className="px-4 py-2 border rounded text-sm">
                 Cancel
               </button>
-              <button onClick={confirmAction} className="px-4 py-2 bg-blue-600 text-white rounded text-sm">
+              <button onClick={confirmAction} className="px-4 py-2 bg-blue-800 text-white rounded text-sm">
                 Confirm
               </button>
             </div>
@@ -230,7 +230,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('matches')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold ${
             activeTab === 'matches'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-blue-800 text-white'
               : 'bg-gray-100 text-gray-700'
           }`}
         >
@@ -241,7 +241,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('leagues')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold ${
             activeTab === 'leagues'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-blue-800 text-white'
               : 'bg-gray-100 text-gray-700'
           }`}
         >
@@ -258,7 +258,7 @@ export default function AdminPage() {
           <button
             onClick={() => setShowUnfinishedOnly((prev) => !prev)}
             className={`px-3 py-2 rounded-full text-sm font-semibold ${
-              showUnfinishedOnly ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+              showUnfinishedOnly ? 'bg-blue-800 text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
             {showUnfinishedOnly ? 'ON' : 'OFF'}
@@ -335,7 +335,7 @@ export default function AdminPage() {
 
                 <button
                   onClick={() => saveMatch(m)}
-                  className="w-full h-10 bg-blue-600 text-white rounded-lg text-sm font-semibold active:scale-95 transition"
+                  className="w-full h-10 bg-blue-800 text-white rounded-lg text-sm font-semibold active:scale-95 transition"
                 >
                   Save Result
                 </button>
@@ -347,7 +347,27 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* FLOAT BUTTON */}
+      <button
+        onClick={() =>
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+        className="
+          fixed bottom-20 right-4
+          z-[999]
+          bg-blue-800 text-white
+          w-12 h-12 rounded-full
+          flex items-center justify-center
+          text-xl
+          shadow-lg
+          active:scale-95 transition
+        "
+      >
+        ↑
+      </button>
+
       {activeTab === 'leagues' && <LeagueManagement />}
     </div>
+    
   )
 }
