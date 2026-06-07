@@ -7,14 +7,19 @@ import Image from 'next/image'
 
 type Match = {
   id: string
-  match_number: number
   home_team: string
   away_team: string
   kickoff_time: string
   status: string
   home_score?: number | null
   away_score?: number | null
+  match_number: number
   group_name?: string | null
+  
+
+  // ✅ NEW (optional fields from view)
+  resolved_home_team?: string
+  resolved_away_team?: string
 }
 
 type Prediction = {
@@ -30,7 +35,6 @@ export default function MatchesPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [userId, setUserId] = useState<string | null>(null)
 
-  // ✅ NEW
   const [showUnfinished, setShowUnfinished] = useState(false)
 
   // 🔥 INITIAL LOAD
@@ -40,8 +44,9 @@ export default function MatchesPage() {
       const uid = userData.user?.id || null
       setUserId(uid)
 
+      // ✅ CHANGED: use resolved_matches
       const { data: matchesData } = await supabase
-        .from('matches')
+        .from('resolved_matches')
         .select('*')
         .order('kickoff_time')
 
@@ -62,7 +67,7 @@ export default function MatchesPage() {
     load()
   }, [])
 
-  // 🔥 REALTIME UPDATES
+  // 🔥 REALTIME UPDATES (unchanged)
   useEffect(() => {
     const channel = supabase
       .channel('matches-realtime')
@@ -124,7 +129,7 @@ export default function MatchesPage() {
     }
   }, [])
 
-  // ✅ NEW FILTER
+  // ✅ FILTER
   const filteredMatches = showUnfinished
     ? matches.filter((m) => m.status !== 'finished')
     : matches
@@ -132,7 +137,7 @@ export default function MatchesPage() {
   return (
     <div className="max-w-6xl mx-auto py-4">
 
-      {/* 🔥 HEADER */}
+      {/* HEADER */}
       <div className="mb-4 flex items-center justify-center gap-2">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
           Matches
@@ -147,10 +152,10 @@ export default function MatchesPage() {
         />
       </div>
 
-      {/* ✅ TOGGLE (NEW) */}
+      {/* TOGGLE */}
       <div className="mb-4 flex items-center justify-center gap-2 text-sm">
         <span className="text-xs font-semibold">
-            Hide Completed Matches
+          Hide Completed Matches
         </span>
 
         <button
@@ -165,7 +170,7 @@ export default function MatchesPage() {
         </button>
       </div>
 
-      {/* 🔥 GRID */}
+      {/* GRID */}
       <div className="
         grid 
         grid-cols-1 
@@ -176,7 +181,14 @@ export default function MatchesPage() {
         {filteredMatches.map((match) => (
           <MatchCard
             key={match.id}
-            match={match}
+            match={{
+              ...match,
+              // ✅ SAFE RESOLUTION (key part)
+              home_team:
+                match.resolved_home_team || match.home_team,
+              away_team:
+                match.resolved_away_team || match.away_team,
+            }}
             prediction={predictions.find(
               (p) => p.match_id === match.id && p.user_id === userId
             )}
@@ -184,7 +196,7 @@ export default function MatchesPage() {
         ))}
       </div>
 
-      {/* 🔥 FLOATING BUTTON */}
+      {/* FLOATING BUTTON */}
       <button
         onClick={() =>
           window.scrollTo({ top: 0, behavior: 'smooth' })
