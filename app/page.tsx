@@ -16,8 +16,6 @@ type Match = {
   match_number: number
   group_name?: string | null
   
-
-  // ✅ NEW (optional fields from view)
   resolved_home_team?: string
   resolved_away_team?: string
 }
@@ -36,15 +34,14 @@ export default function MatchesPage() {
   const [userId, setUserId] = useState<string | null>(null)
 
   const [showUnfinished, setShowUnfinished] = useState(false)
+  const [activeTab, setActiveTab] = useState<'group' | 'knockout'>('group')
 
-  // 🔥 INITIAL LOAD
   useEffect(() => {
     async function load() {
       const { data: userData } = await supabase.auth.getUser()
       const uid = userData.user?.id || null
       setUserId(uid)
 
-      // ✅ CHANGED: use resolved_matches
       const { data: matchesData } = await supabase
         .from('resolved_matches')
         .select('*')
@@ -67,7 +64,6 @@ export default function MatchesPage() {
     load()
   }, [])
 
-  // 🔥 REALTIME UPDATES (unchanged)
   useEffect(() => {
     const channel = supabase
       .channel('matches-realtime')
@@ -129,10 +125,39 @@ export default function MatchesPage() {
     }
   }, [])
 
-  // ✅ FILTER
-  const filteredMatches = showUnfinished
-    ? matches.filter((m) => m.status !== 'finished')
-    : matches
+  // GROUP STAGE
+  const groupStageMatches = matches.filter((m) =>
+    m.group_name?.startsWith('Group')
+  )
+
+  // KNOCKOUT
+  const knockoutMatches = matches.filter(
+    (m) =>
+      m.group_name === 'Round of 16' ||
+      m.group_name === 'Quarter Final' ||
+      m.group_name === 'Semi Final' ||
+      m.group_name === 'Final' ||
+      m.group_name === 'Third Place'
+  )
+
+  const knockoutRounds = [
+    'Round of 16',
+    'Quarter Final',
+    'Semi Final',
+    'Third Place',
+    'Final'
+  ]
+
+  const groupedKnockout = knockoutRounds.map((round) => ({
+    round,
+    matches: knockoutMatches
+      .filter((m) => m.group_name === round)
+      .sort((a, b) => a.match_number - b.match_number),
+  }))
+
+  const filteredGroupMatches = showUnfinished
+    ? groupStageMatches.filter((m) => m.status !== 'finished')
+    : groupStageMatches
 
   return (
     <div className="max-w-6xl mx-auto py-4">
@@ -152,51 +177,109 @@ export default function MatchesPage() {
         />
       </div>
 
-      {/* TOGGLE */}
-      <div className="mb-4 flex items-center justify-center gap-2 text-sm">
-        <span className="text-xs font-semibold">
-          Hide Completed Matches
-        </span>
-
+      {/* TABS */}
+      <div className="flex justify-center mb-4 gap-2">
         <button
-          onClick={() => setShowUnfinished((prev) => !prev)}
-          className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
-            showUnfinished
+          onClick={() => setActiveTab('group')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+            activeTab === 'group'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-200 text-gray-700'
           }`}
         >
-          {showUnfinished ? 'ON' : 'OFF'}
+          Group Stage
+        </button>
+
+        <button
+          onClick={() => setActiveTab('knockout')}
+          className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+            activeTab === 'knockout'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700'
+          }`}
+        >
+          Knockout Stage
         </button>
       </div>
 
+      {/* TOGGLE */}
+      {activeTab === 'group' && (
+        <div className="mb-4 flex items-center justify-center gap-2 text-sm">
+          <span className="text-xs font-semibold">
+            Hide Completed Matches
+          </span>
+
+          <button
+            onClick={() => setShowUnfinished((prev) => !prev)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+              showUnfinished
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            {showUnfinished ? 'ON' : 'OFF'}
+          </button>
+        </div>
+      )}
+
       {/* GRID */}
-      <div className="
-        grid 
-        grid-cols-1 
-        sm:grid-cols-2 
-        lg:grid-cols-3 
-        gap-3 sm:gap-4
-      ">
-        {filteredMatches.map((match) => (
-          <MatchCard
-            key={match.id}
-            match={{
-              ...match,
-              // ✅ SAFE RESOLUTION (key part)
-              home_team:
-                match.resolved_home_team || match.home_team,
-              away_team:
-                match.resolved_away_team || match.away_team,
-            }}
-            prediction={predictions.find(
-              (p) => p.match_id === match.id && p.user_id === userId
-            )}
-          />
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+
+        {activeTab === 'group' ? (
+
+          filteredGroupMatches.map((match) => (
+            <MatchCard
+              key={match.id}
+              match={{
+                ...match,
+                home_team:
+                  match.resolved_home_team || match.home_team,
+                away_team:
+                  match.resolved_away_team || match.away_team,
+              }}
+              prediction={predictions.find(
+                (p) => p.match_id === match.id && p.user_id === userId
+              )}
+            />
+          ))
+
+        ) : (
+
+          groupedKnockout.map((section) =>
+            section.matches.length > 0 && (
+              <div key={section.round} className="col-span-full mt-6">
+
+                <h2 className="text-sm font-bold text-gray-700 mb-2 text-center">
+                  {section.round}
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {section.matches.map((match) => (
+                    <MatchCard
+                      key={match.id}
+                      match={{
+                        ...match,
+                        home_team:
+                          match.resolved_home_team || match.home_team,
+                        away_team:
+                          match.resolved_away_team || match.away_team,
+                      }}
+                      prediction={predictions.find(
+                        (p) => p.match_id === match.id && p.user_id === userId
+                      )}
+                    />
+                  ))}
+                </div>
+
+              </div>
+            )
+          )
+
+        )}
+
       </div>
 
-      {/* FLOATING BUTTON */}
+      {/* FLOAT BUTTON */}
       <button
         onClick={() =>
           window.scrollTo({ top: 0, behavior: 'smooth' })

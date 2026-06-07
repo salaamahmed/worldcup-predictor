@@ -6,32 +6,32 @@ type Props = {
   matches: Match[]
 }
 
-type SideProps = {
-  r32: Match[]
-  r16: Match[]
-  qf: Match[]
-  sf: Match[]
-  reverse?: boolean
+/* ================= HELPERS ================= */
+
+function getTeam(match: Match, side: 'home' | 'away') {
+  return side === 'home'
+    ? match.resolved_home_team ?? match.home_team
+    : match.resolved_away_team ?? match.away_team
 }
 
-type ColumnProps = {
-  matches: Match[]
-  gap: string
-  highlight?: boolean
+function isWinner(match: Match, side: 'home' | 'away') {
+  if (match.status?.toLowerCase() !== 'finished') return false
+
+  if (side === 'home') {
+    return (match.home_score ?? 0) > (match.away_score ?? 0)
+  }
+
+  return (match.away_score ?? 0) > (match.home_score ?? 0)
 }
 
-type MatchWithLineProps = {
-  match: Match
-  highlight?: boolean
-}
+/* ================= MAIN ================= */
 
 export default function Bracket({ matches }: Props) {
   const get = (round: string) =>
     matches
       .filter((m) => m.group_name === round)
-      .sort((a, b) => (a.bracket_slot ?? 0) - (b.bracket_slot ?? 0))
+      .sort((a, b) => (a.bracket_slot || 0) - (b.bracket_slot || 0))
 
-  const r32 = get('Round of 32')
   const r16 = get('Round of 16')
   const qf = get('Quarter Final')
   const sf = get('Semi Final')
@@ -39,34 +39,33 @@ export default function Bracket({ matches }: Props) {
   const third = get('Third Place')[0]
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex justify-center gap-20 py-10 min-w-[1400px]">
+    <div className="overflow-x-auto py-10">
+      <div className="min-w-[1200px] flex justify-center gap-16">
 
         {/* LEFT SIDE */}
-        <Side
-          r32={r32.slice(0, 8)}
+        <BracketSide
           r16={r16.slice(0, 4)}
           qf={qf.slice(0, 2)}
           sf={sf.slice(0, 1)}
         />
 
         {/* CENTER */}
-        <div className="flex flex-col items-center justify-center gap-16">
-          <h2 className="font-bold text-lg">Final 🏆</h2>
-          {final && <MatchBox match={final} highlight />}
+        <div className="flex flex-col items-center justify-center gap-10">
+          <RoundTitle title="Final 🏆" />
+          {final && <MatchCard match={final} highlight />}
 
-          <h2 className="font-bold text-lg mt-6">Third Place 🥉</h2>
-          {third && <MatchBox match={third} />}
+          <RoundTitle title="Third Place 🥉" />
+          {third && <MatchCard match={third} />}
         </div>
 
         {/* RIGHT SIDE */}
-        <Side
-          r32={r32.slice(8, 16)}
+        <BracketSide
           r16={r16.slice(4, 8)}
           qf={qf.slice(2, 4)}
           sf={sf.slice(1, 2)}
           reverse
         />
+
       </div>
     </div>
   )
@@ -74,91 +73,107 @@ export default function Bracket({ matches }: Props) {
 
 /* ================= SIDE ================= */
 
-function Side({ r32, r16, qf, sf, reverse = false }: SideProps) {
+type SideProps = {
+  r16: Match[]
+  qf: Match[]
+  sf: Match[]
+  reverse?: boolean
+}
+
+function BracketSide({ r16, qf, sf, reverse = false }: SideProps) {
   return (
-    <div className={`flex gap-12 ${reverse ? 'flex-row-reverse' : ''}`}>
-
-      <Column matches={r32} gap="gap-6" />
-      <Column matches={r16} gap="gap-12 mt-6" />
-      <Column matches={qf} gap="gap-20 mt-16" />
-      <Column matches={sf} gap="gap-32 mt-32" highlight />
-
+    <div className={`flex gap-10 ${reverse ? 'flex-row-reverse' : ''}`}>
+      <RoundColumn matches={r16} gap="gap-6" />
+      <RoundColumn matches={qf} gap="gap-16 mt-6" />
+      <RoundColumn matches={sf} gap="gap-32 mt-20" highlight />
     </div>
   )
 }
 
 /* ================= COLUMN ================= */
 
-function Column({ matches, gap, highlight = false }: ColumnProps) {
+type ColumnProps = {
+  matches: Match[]
+  gap: string
+  highlight?: boolean
+}
+
+function RoundColumn({ matches, gap, highlight = false }: ColumnProps) {
   return (
-    <div className={`flex flex-col ${gap} items-center`}>
+    <div className={`flex flex-col ${gap}`}>
       {matches.map((m) => (
-        <MatchWithLine key={m.id} match={m} highlight={highlight} />
+        <MatchWithConnector key={m.id} match={m} highlight={highlight} />
       ))}
     </div>
   )
 }
 
-/* ================= MATCH + LINE ================= */
+/* ================= MATCH + CONNECTOR ================= */
 
-function MatchWithLine({ match, highlight }: MatchWithLineProps) {
+type MatchWithConnectorProps = {
+  match: Match
+  highlight?: boolean
+}
+
+function MatchWithConnector({ match, highlight }: MatchWithConnectorProps) {
   return (
     <div className="flex items-center">
-
-      <MatchBox match={match} highlight={highlight} />
-
-      {/* SVG CONNECTOR */}
-      <svg width="40" height="60" className="ml-1">
-        <line
-          x1="0"
-          y1="30"
-          x2="40"
-          y2="30"
-          stroke="#999"
-          strokeWidth="2"
-        />
-      </svg>
-
+      <MatchCard match={match} highlight={highlight} />
+      <div className="w-8 h-[2px] bg-gray-400 ml-1" />
     </div>
   )
 }
 
-/* ================= MATCH BOX ================= */
+/* ================= MATCH CARD ================= */
 
-function MatchBox({ match, highlight = false }: { match: Match; highlight?: boolean }) {
-  const homeWin =
-    match.status === 'FINISHED' &&
-    match.home_score !== null &&
-    match.away_score !== null &&
-    match.home_score > match.away_score
+type MatchCardProps = {
+  match: Match
+  highlight?: boolean
+}
 
-  const awayWin =
-    match.status === 'FINISHED' &&
-    match.home_score !== null &&
-    match.away_score !== null &&
-    match.away_score > match.home_score
-
+function MatchCard({ match, highlight = false }: MatchCardProps) {
   return (
     <div
       className={`
-        bg-white border rounded p-2 w-44 text-sm shadow
-        transition-all duration-300
+        w-48 bg-white border rounded-lg p-2 text-sm shadow
+        transition
         ${highlight ? 'border-yellow-400 shadow-lg scale-105' : ''}
       `}
     >
-      <div className="flex justify-between">
-        <span className={homeWin ? 'text-green-600 font-bold' : ''}>
-          {match.home_team}
-        </span>
-        <span>{match.home_score ?? '-'}</span>
-      </div>
+      <TeamRow match={match} side="home" />
+      <TeamRow match={match} side="away" />
+    </div>
+  )
+}
 
-      <div className="flex justify-between">
-        <span className={awayWin ? 'text-green-600 font-bold' : ''}>
-          {match.away_team}
-        </span>
-        <span>{match.away_score ?? '-'}</span>
-      </div>
+/* ================= TEAM ROW ================= */
+
+type TeamRowProps = {
+  match: Match
+  side: 'home' | 'away'
+}
+
+function TeamRow({ match, side }: TeamRowProps) {
+  const team = getTeam(match, side)
+  const score = side === 'home' ? match.home_score : match.away_score
+  const win = isWinner(match, side)
+
+  return (
+    <div className="flex justify-between">
+      <span className={win ? 'text-green-600 font-bold' : ''}>
+        {team}
+      </span>
+      <span>{score ?? '-'}</span>
+    </div>
+  )
+}
+
+/* ================= TITLE ================= */
+
+function RoundTitle({ title }: { title: string }) {
+  return (
+    <div className="text-center font-bold text-lg text-gray-800">
+      {title}
     </div>
   )
 }
