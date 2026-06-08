@@ -294,7 +294,13 @@ export default function AdminPage() {
                 </div>
 
                 <div className="text-xs text-gray-500">
-                  {date.toLocaleDateString()} • {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {date.toLocaleString([], {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}{' '}
+                  ({Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[1]})
                 </div>
 
                 <div className="flex items-center justify-between text-center">

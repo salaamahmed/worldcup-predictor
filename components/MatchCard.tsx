@@ -166,11 +166,13 @@ export default function MatchCard({
 
         <div className="flex justify-between text-[11px] text-gray-500 mb-2">
           <span>
-            {date.toLocaleDateString()} •{' '}
-            {date.toLocaleTimeString([], {
+            {date.toLocaleString([], {
+              day: 'numeric',
+              month: 'short',
               hour: '2-digit',
               minute: '2-digit',
-            })}
+            })}{' '}
+            ({Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[1]})
           </span>
 
         </div>
