@@ -198,18 +198,34 @@ export default function MatchDetails() {
     if (!match?.kickoff_time) return
 
     const interval = setInterval(() => {
-      const diff = new Date(match.kickoff_time).getTime() - Date.now()
+      const now = Date.now()
+      const kickoff = new Date(match.kickoff_time).getTime()
+      const diff = kickoff - now
 
+      // 🔴 LIVE / FT
       if (diff <= 0) {
-        setTimeLeft('🔒 Locked')
+        if (match.status === 'finished') {
+          setTimeLeft('FT')
+        } else {
+          setTimeLeft('🔴 Live')
+        }
         clearInterval(interval)
         return
       }
 
-      const h = Math.floor(diff / (1000 * 60 * 60))
-      const m = Math.floor((diff / (1000 * 60)) % 60)
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+      const minutes = Math.floor((diff / (1000 * 60)) % 60)
 
-      setTimeLeft(`${h}h ${m}m`)
+      let timeString = ''
+
+      if (days > 0) {
+        timeString = `${days}d ${hours}h`
+      } else {
+        timeString = `${hours}h ${minutes}m`
+      }
+
+      setTimeLeft(`🟢 Starts in ${timeString}`)
     }, 1000)
 
     return () => clearInterval(interval)
@@ -283,6 +299,13 @@ export default function MatchDetails() {
     setTimeout(() => setToast(''), 2000)
   }
 
+  const getTimeColor = () => {
+    if (timeLeft.includes('Live')) return 'text-red-600'
+    if (timeLeft.includes('Starts')) return 'text-green-600'
+    if (timeLeft === 'FT') return 'text-gray-500'
+    return 'text-gray-600'
+  }
+
   const homeTeam = match?.resolved_home_team || match?.home_team
   const awayTeam = match?.resolved_away_team || match?.away_team
 
@@ -332,7 +355,7 @@ export default function MatchDetails() {
                 <div className="text-gray-500 font-bold text-sm">VS</div>
               )}
 
-              <div className="text-sm font-semibold text-orange-600 mt-1">
+              <div className={`text-sm font-semibold mt-1 ${getTimeColor()}`}>
                 {timeLeft}
               </div>
             </div>
