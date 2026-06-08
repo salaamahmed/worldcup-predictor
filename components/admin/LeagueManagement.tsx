@@ -160,7 +160,6 @@ export default function LeagueManagement() {
   const selectedLeagueName =
     leagues.find((l) => l.id === selectedLeague)?.name || ''
 
-  // ✅ UPDATED FILTER (NO DUPLICATES IN DROPDOWN)
   const filteredUsers = profiles
     .filter((p) =>
       p.username?.toLowerCase().includes(search.toLowerCase())
@@ -168,30 +167,30 @@ export default function LeagueManagement() {
     .filter((p) => !members.some((m) => m.user_id === p.id))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-sm sm:text-base">
 
       {statusMessage && (
-        <div className="w-full bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded">
+        <div className="w-full bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded text-sm sm:text-base">
           ✓ {statusMessage}
         </div>
       )}
 
       {confirmAction && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
-            <p>{confirmText}</p>
+          <div className="bg-white p-6 rounded-lg shadow-lg space-y-4 text-sm sm:text-base">
+            <p className="text-sm sm:text-base">{confirmText}</p>
 
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setConfirmAction(null)}
-                className="px-3 py-1 border rounded"
+                className="px-3 py-1 border rounded text-xs sm:text-sm"
               >
                 Cancel
               </button>
 
               <button
                 onClick={confirmAction}
-                className="px-3 py-1 bg-blue-800 text-white rounded"
+                className="px-3 py-1 bg-blue-800 text-white rounded text-xs sm:text-sm"
               >
                 Confirm
               </button>
@@ -200,23 +199,20 @@ export default function LeagueManagement() {
         </div>
       )}
 
-      {/* rest unchanged */}
-      {/* (kept exactly same to avoid breaking anything) */}
-
       {/* CREATE LEAGUE */}
       <div className="border p-4 rounded-lg">
-        <h2 className="font-bold mb-2">Create League</h2>
+        <h2 className="font-semibold text-base sm:text-lg mb-2">Create League</h2>
 
         <div className="flex gap-2">
           <input
             value={newLeagueName}
             onChange={(e) => setNewLeagueName(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border p-2 rounded w-full text-sm sm:text-base"
           />
 
           <button
             onClick={createLeague}
-            className="bg-green-800 text-white px-3 rounded"
+            className="bg-green-800 text-white px-3 py-1.5 rounded text-xs sm:text-sm"
           >
             Create
           </button>
@@ -225,23 +221,23 @@ export default function LeagueManagement() {
 
       {/* LEAGUES */}
       <div className="border p-4 rounded-lg">
-        <h2 className="font-bold mb-2">Leagues</h2>
+        <h2 className="font-semibold text-base sm:text-lg mb-2">Leagues</h2>
 
         {leagues.map((l) => (
-          <div key={l.id} className="flex justify-between mb-2">
+          <div key={l.id} className="flex justify-between mb-2 text-sm sm:text-base">
             <span>{l.name}</span>
 
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedLeague(l.id)}
-                className="bg-blue-800 text-white px-3 rounded"
+                className="bg-blue-800 text-white px-3 py-1.5 rounded text-xs sm:text-sm"
               >
                 Manage
               </button>
 
               <button
                 onClick={() => deleteLeague(l.id)}
-                className="bg-red-800 text-white px-3 rounded"
+                className="bg-red-800 text-white px-3 py-1.5 rounded text-xs sm:text-sm"
               >
                 Delete
               </button>
@@ -254,7 +250,7 @@ export default function LeagueManagement() {
       {selectedLeague && (
         <div className="border p-4 rounded-lg space-y-4">
 
-          <h2 className="font-bold">
+          <h2 className="font-semibold text-base sm:text-lg">
             Managing: <span className="text-blue-800">{selectedLeagueName}</span>
           </h2>
 
@@ -262,14 +258,14 @@ export default function LeagueManagement() {
             placeholder="Search users..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border p-2 rounded w-full text-sm sm:text-base"
           />
 
           <div className="flex gap-2">
             <select
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
-              className="border p-2 rounded w-full"
+              className="border p-2 rounded w-full text-sm sm:text-base"
             >
               <option value="">Select user</option>
               {filteredUsers.map((p) => (
@@ -281,7 +277,7 @@ export default function LeagueManagement() {
 
             <button
               onClick={addUserToLeague}
-              className="bg-blue-800 text-white px-3 rounded"
+              className="bg-blue-800 text-white px-3 py-1.5 rounded text-xs sm:text-sm"
             >
               Add
             </button>
@@ -291,13 +287,13 @@ export default function LeagueManagement() {
             {members.map((m) => (
               <div
                 key={m.user_id}
-                className="flex justify-between border p-2 rounded"
+                className="flex justify-between items-center border p-2 rounded text-sm sm:text-base"
               >
                 <span>{m.username}</span>
 
                 <button
                   onClick={() => removeUser(m.user_id)}
-                  className="bg-red-800 text-white px-3 rounded"
+                  className="bg-red-800 text-white px-3 py-1.5 rounded text-xs sm:text-sm"
                 >
                   Remove
                 </button>
