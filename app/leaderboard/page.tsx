@@ -146,7 +146,7 @@ export default function LeaderboardPage() {
         >
           {leagues.map((l) => (
             <option key={l.league_id} value={l.league_id}>
-              {l.league_name}
+              {l.league_id === '00000000-0000-0000-0000-000000000000' ? '🌍 APP' : l.league_name}
             </option>
           ))}
         </select>

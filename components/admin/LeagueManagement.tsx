@@ -53,7 +53,12 @@ export default function LeagueManagement() {
 
   async function loadLeagues() {
     const { data } = await supabase.from('leagues').select('*')
-    setLeagues(data || [])
+
+    // Filter out the default "APP" league
+    const GLOBAL_ID = '00000000-0000-0000-0000-000000000000'
+
+    const filtered = (data || []).filter((l) => l.id !== GLOBAL_ID)
+    setLeagues(filtered)
   }
 
   async function loadUsers() {
