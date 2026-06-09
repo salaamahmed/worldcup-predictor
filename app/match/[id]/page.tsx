@@ -394,7 +394,7 @@ export default function MatchDetails() {
             value={home}
             onChange={(e) => setHome(e.target.value)}
             type="number"
-            className="w-16 h-14 border rounded-xl text-center text-xl font-semibold disabled:bg-gray-100"
+            className="w-16 h-14 border rounded-xl text-center text-xl text-gray-900 font-semibold disabled:bg-gray-100"
           />
           <span className="font-bold text-lg">-</span>
           <input
@@ -402,7 +402,7 @@ export default function MatchDetails() {
             value={away}
             onChange={(e) => setAway(e.target.value)}
             type="number"
-            className="w-16 h-14 border rounded-xl text-center text-xl font-semibold disabled:bg-gray-100"
+            className="w-16 h-14 border rounded-xl text-center text-xl text-gray-900 font-semibold disabled:bg-gray-100"
           />
         </div>
 
