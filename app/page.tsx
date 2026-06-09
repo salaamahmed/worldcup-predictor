@@ -34,6 +34,7 @@ export default function MatchesPage() {
   const [userId, setUserId] = useState<string | null>(null)
 
   const [showUnfinished, setShowUnfinished] = useState(false)
+  const [hidePredicted, setHidePredicted] = useState(false)
   const [activeTab, setActiveTab] = useState<'group' | 'knockout'>('group')
 
   useEffect(() => {
@@ -155,9 +156,15 @@ export default function MatchesPage() {
       .sort((a, b) => a.match_number - b.match_number),
   }))
 
-  const filteredGroupMatches = showUnfinished
-    ? groupStageMatches.filter((m) => m.status !== 'finished')
-    : groupStageMatches
+  const filteredGroupMatches = groupStageMatches
+    .filter((m) => (showUnfinished ? m.status !== 'finished' : true))
+    .filter((m) =>
+      hidePredicted
+        ? !predictions.some(
+            (p) => p.match_id === m.id && p.user_id === userId
+          )
+        : true
+    )
 
   return (
     <div className="max-w-6xl mx-auto py-4">
@@ -204,22 +211,46 @@ export default function MatchesPage() {
 
       {/* TOGGLE */}
       {activeTab === 'group' && (
-        <div className="mb-4 flex items-center justify-center gap-2 text-sm">
-          <span className="text-xs font-semibold text-sm text-gray-500">
-            Hide Completed Matches
-          </span>
+        <div className="mb-4 flex items-center justify-center gap-4 text-sm">
 
-          <button
-            onClick={() => setShowUnfinished((prev) => !prev)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
-              showUnfinished
-                ? 'bg-blue-800 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}
-          >
-            {showUnfinished ? 'ON' : 'OFF'}
-          </button>
+          {/* Existing toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-500">
+              Hide Completed Matches
+            </span>
+
+            <button
+              onClick={() => setShowUnfinished((prev) => !prev)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                showUnfinished
+                  ? 'bg-blue-800 text-white'
+                  : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              {showUnfinished ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          {/* NEW toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-500">
+              Hide Predicted Matches
+            </span>
+
+            <button
+              onClick={() => setHidePredicted((prev) => !prev)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                hidePredicted
+                  ? 'bg-blue-800 text-white'
+                  : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              {hidePredicted ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
         </div>
+
       )}
 
       {/* GRID */}
@@ -254,7 +285,14 @@ export default function MatchesPage() {
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {section.matches.map((match) => (
+                  {section.matches.filter((m) =>
+                      hidePredicted
+                        ? !predictions.some(
+                            (p) => p.match_id === m.id && p.user_id === userId
+                          )
+                        : true
+                    )
+                    .map((match) => (
                     <MatchCard
                       key={match.id}
                       match={{
