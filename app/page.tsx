@@ -134,6 +134,7 @@ export default function MatchesPage() {
   // KNOCKOUT
   const knockoutMatches = matches.filter(
     (m) =>
+      m.group_name === 'Round of 32' ||
       m.group_name === 'Round of 16' ||
       m.group_name === 'Quarter Final' ||
       m.group_name === 'Semi Final' ||
@@ -142,6 +143,7 @@ export default function MatchesPage() {
   )
 
   const knockoutRounds = [
+    'Round of 32',
     'Round of 16',
     'Quarter Final',
     'Semi Final',
