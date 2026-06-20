@@ -36,6 +36,8 @@ export default function LeaderboardPage() {
       .from('leaderboard_by_league')
       .select('*')
       .eq('league_id', leagueId)
+      .order('rank', { ascending: true })
+      .order('exact_scores', { ascending: false })
 
     setRows((data as Row[]) || [])
   }

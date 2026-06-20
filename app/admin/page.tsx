@@ -207,7 +207,7 @@ export default function AdminPage() {
           <div className="bg-white p-5 rounded-lg shadow-lg space-y-4 w-full max-w-sm">
             <p className="text-gray-800 text-sm sm:text-base">{confirmText}</p>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setConfirmAction(null)} className="px-4 py-2 border rounded text-sm">
+              <button onClick={() => setConfirmAction(null)} className="px-4 py-2 border rounded text-sm sm:text-gray-800">
                 Cancel
               </button>
               <button onClick={confirmAction} className="px-4 py-2 bg-blue-800 text-white rounded text-sm">
@@ -315,14 +315,14 @@ export default function AdminPage() {
                       type="number"
                       value={scores[m.id]?.home || ''}
                       onChange={(e) => handleChange(m.id, 'home', e.target.value)}
-                      className="w-12 h-10 border border-gray-300 rounded text-center text-base"
+                      className="w-16 h-14 border rounded-xl text-center text-xl text-gray-900 font-semibold disabled:bg-gray-100"
                     />
                     <span className="text-gray-700">-</span>
                     <input
                       type="number"
                       value={scores[m.id]?.away || ''}
                       onChange={(e) => handleChange(m.id, 'away', e.target.value)}
-                      className="w-12 h-10 border border-gray-300 rounded text-center text-base"
+                      className="w-16 h-14 border rounded-xl text-center text-xl text-gray-900 font-semibold disabled:bg-gray-100"
                     />
                   </div>
 
