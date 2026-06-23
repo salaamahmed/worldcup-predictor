@@ -33,9 +33,46 @@ export default function MatchesPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [userId, setUserId] = useState<string | null>(null)
 
-  const [showUnfinished, setShowUnfinished] = useState(false)
-  const [hidePredicted, setHidePredicted] = useState(false)
-  const [activeTab, setActiveTab] = useState<'group' | 'knockout'>('group')
+  const [showUnfinished, setShowUnfinished] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return sessionStorage.getItem('showUnfinished') === 'true'
+  })
+
+  const [hidePredicted, setHidePredicted] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return sessionStorage.getItem('hidePredicted') === 'true'
+  })
+
+  const [activeTab, setActiveTab] = useState<'group' | 'knockout'>(() => {
+    if (typeof window === 'undefined') return 'group'
+    return (sessionStorage.getItem('activeTab') as 'group' | 'knockout') || 'group'
+  })
+
+  useEffect(() => {
+    sessionStorage.setItem('showUnfinished', String(showUnfinished))
+  }, [showUnfinished])
+
+  useEffect(() => {
+    sessionStorage.setItem('hidePredicted', String(hidePredicted))
+  }, [hidePredicted])
+
+  useEffect(() => {
+    sessionStorage.setItem('activeTab', activeTab)
+  }, [activeTab])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('matchesScrollY', String(window.scrollY))
+    }
+
+    window.addEventListener('scroll', handleScroll)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  
 
   useEffect(() => {
     async function load() {
@@ -60,6 +97,14 @@ export default function MatchesPage() {
       }
 
       await supabase.rpc('update_match_status')
+
+      // Restore scroll position
+      const savedScroll = sessionStorage.getItem('matchesScrollY')
+      if (savedScroll) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScroll))
+        }, 100)
+      }
     }
 
     load()
