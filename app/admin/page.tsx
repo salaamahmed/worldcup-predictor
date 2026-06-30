@@ -18,6 +18,8 @@ type Match = {
   group_name?: string | null
   resolved_home_team?: string
   resolved_away_team?: string
+  home_penalties?: number | null
+  away_penalties?: number | null
 }
 
 function getFlag(team: string) {
@@ -87,7 +89,17 @@ function getFlag(team: string) {
 export default function AdminPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [scores, setScores] = useState<Record<string, { home: string; away: string }>>({})
+  const [scores, setScores] = useState<
+    Record<
+      string,
+      {
+        home: string
+        away: string
+        homePens: string
+        awayPens: string
+      }
+    >
+  >({})
   const [activeTab, setActiveTab] = useState<'matches' | 'leagues'>('matches')
   const [showUnfinishedOnly, setShowUnfinishedOnly] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
@@ -113,11 +125,14 @@ export default function AdminPage() {
 
     setMatches(data || [])
 
-    const initial: Record<string, { home: string; away: string }> = {}
+    const initial: Record<string, { home: string; away: string; homePens: string; awayPens: string;}> = {}
     data?.forEach((m) => {
       initial[m.id] = {
         home: m.home_score?.toString() || '',
         away: m.away_score?.toString() || '',
+
+        homePens: m.home_penalties?.toString() || '',
+        awayPens: m.away_penalties?.toString() || '',
       }
     })
 
@@ -151,7 +166,7 @@ export default function AdminPage() {
     init()
   }, [router])
 
-  function handleChange(id: string, type: 'home' | 'away', value: string) {
+  function handleChange(id: string, type: 'home' | 'away' | 'homePens' | 'awayPens', value: string) {
     setScores((prev) => ({
       ...prev,
       [id]: { ...prev[id], [type]: value },
@@ -161,23 +176,75 @@ export default function AdminPage() {
   async function saveMatch(m: Match) {
     const home = parseInt(scores[m.id]?.home || '0', 10)
     const away = parseInt(scores[m.id]?.away || '0', 10)
+    const homePens = parseInt(scores[m.id]?.homePens || '0', 10)
+    const awayPens = parseInt(scores[m.id]?.awayPens || '0', 10)
 
     if (isNaN(home) || isNaN(away)) {
       showStatus('Enter valid scores')
       return
     }
 
-    askConfirm(`Save result ${home} - ${away} for Match ${m.match_number}?`, async () => {
+    const isKnockout =
+      m.group_name &&
+      !m.group_name.startsWith('Group')
+    
+    if (
+      isKnockout &&
+      home === away &&
+      homePens === awayPens
+    ) {
+      showStatus('Penalty shootout cannot end in a draw.')
+      return
+    }
+    
+    const confirmation =
+      isKnockout &&
+      home === away
+        ? `Save ${home}-${away} (${homePens}-${awayPens} pens) for Match ${m.match_number}?`
+        : `Save ${home}-${away} for Match ${m.match_number}?`
+
+    askConfirm(confirmation, async () => {
       await supabase
         .from('matches')
-        .update({ home_score: home, away_score: away, status: 'finished' })
+        .update({
+          home_score: home,
+          away_score: away,
+
+          home_penalties:
+            isKnockout && home === away
+              ? homePens
+              : null,
+
+          away_penalties:
+            isKnockout && home === away
+              ? awayPens
+              : null,
+
+          status: 'finished',
+        })
         .eq('id', m.id)
 
       showStatus(`Saved Match ${m.match_number}`)
 
       setMatches((prev) =>
         prev.map((x) =>
-          x.id === m.id ? { ...x, home_score: home, away_score: away, status: 'finished' } : x
+          x.id === m.id ? {
+            ...x,
+            home_score: home,
+            away_score: away,
+
+            home_penalties:
+              isKnockout && home === away
+                ? homePens
+                : null,
+
+            away_penalties:
+              isKnockout && home === away
+                ? awayPens
+                : null,
+
+            status: 'finished',
+          } : x
         )
       )
 
@@ -275,6 +342,15 @@ export default function AdminPage() {
             const home = m.resolved_home_team || m.home_team
             const away = m.resolved_away_team || m.away_team
 
+            const isKnockout =
+              m.group_name &&
+              !m.group_name.startsWith('Group')
+
+            const isDraw =
+              scores[m.id]?.home !== '' &&
+              scores[m.id]?.away !== '' &&
+              scores[m.id]?.home === scores[m.id]?.away
+
             return (
               <div key={m.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
 
@@ -332,12 +408,56 @@ export default function AdminPage() {
                   </div>
 
                 </div>
+                
+                {isKnockout && isDraw && (
+                  <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-3">
 
-                {m.status === 'finished' && (
-                  <div className="text-center text-sm text-green-700 font-semibold">
-                    Final: {m.home_score} - {m.away_score}
+                    <div className="text-center text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+                      Penalty Shootout
+                    </div>
+
+                    <div className="flex items-center justify-center gap-3">
+
+                      <input
+                        type="number"
+                        value={scores[m.id]?.homePens || ''}
+                        onChange={(e) =>
+                          handleChange(m.id, 'homePens', e.target.value)
+                        }
+                        placeholder="0"
+                        className="w-14 h-11 border rounded-lg text-center font-semibold text-gray-900"
+                      />
+
+                      <span className="font-semibold text-gray-600">-</span>
+
+                      <input
+                        type="number"
+                        value={scores[m.id]?.awayPens || ''}
+                        onChange={(e) =>
+                          handleChange(m.id, 'awayPens', e.target.value)
+                        }
+                        placeholder="0"
+                        className="w-14 h-11 border rounded-lg text-center font-semibold text-gray-900"
+                      />
+
+                    </div>
+
                   </div>
                 )}
+
+                {m.status === 'finished' && 
+                  m.home_penalties != null &&
+                  m.away_penalties != null ? (
+                    <div className="text-center text-sm text-green-700 font-semibold">
+                      FT : {m.home_score} - {m.away_score}
+                      <br />
+                      Penalties : {m.home_penalties} - {m.away_penalties}
+                    </div>
+                  ) : (
+                    <div className="text-center text-sm text-green-700 font-semibold">
+                      FT : {m.home_score} - {m.away_score}
+                    </div>
+                  )}
 
                 <button
                   onClick={() => saveMatch(m)}

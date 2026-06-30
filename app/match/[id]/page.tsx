@@ -12,6 +12,8 @@ type Match = {
   away_team: string
   home_score: number | null
   away_score: number | null
+  home_penalties?: number | null
+  away_penalties?: number | null
   status: string | null
   kickoff_time: string
   resolved_home_team?: string
@@ -301,7 +303,7 @@ export default function MatchDetails() {
 
   const getTimeColor = () => {
     if (timeLeft.includes('Live')) return 'text-red-600'
-    if (timeLeft.includes('Starts')) return 'text-green-600'
+    if (timeLeft.includes('Starts')) return 'text-green-700'
     if (timeLeft === 'FT') return 'text-gray-500'
     return 'text-gray-600'
   }
@@ -311,15 +313,29 @@ export default function MatchDetails() {
 
   const homeWin =
     match?.status === 'finished' &&
-    match.home_score != null &&
-    match.away_score != null &&
-    match.home_score > match.away_score
+    (
+      (match.home_score! > match.away_score!) ||
+
+      (
+        match.home_score === match.away_score &&
+        match.home_penalties != null &&
+        match.away_penalties != null &&
+        match.home_penalties > match.away_penalties
+      )
+    )
 
   const awayWin =
     match?.status === 'finished' &&
-    match.home_score != null &&
-    match.away_score != null &&
-    match.away_score > match.home_score
+    (
+      (match.away_score! > match.home_score!) ||
+
+      (
+        match.home_score === match.away_score &&
+        match.home_penalties != null &&
+        match.away_penalties != null &&
+        match.away_penalties > match.home_penalties
+      )
+    )
 
   return (
     <div className="max-w-md mx-auto px-4 py-5 space-y-5">
@@ -332,8 +348,8 @@ export default function MatchDetails() {
             <div className="flex flex-col items-center w-1/3">
               <Image src={getFlag(homeTeam!)} alt="" width={44} height={44} className="rounded-full" />
               <span 
-                className={`"mt-2 text-sm sm:text-base font-semibold text-gray-900 text-center"
-                ${homeWin ? 'text-green-600' : 'text-gray-900'}
+                className={`"mt-2 text-xs sm:text-base font-semibold text-gray-900 text-center"
+                ${homeWin ? 'text-green-700' : 'text-gray-900'}
                 `}
                 >
                 {homeTeam}
@@ -343,13 +359,30 @@ export default function MatchDetails() {
             <div className="text-center">
               {match.status === 'finished' ? (
                 <div className="text-3xl font-bold">
-                  <span className={homeWin ? 'text-green-600' : 'text-gray-900'}>
+                  <span className={homeWin ? 'text-green-700' : 'text-gray-900'}>
                     {match.home_score}
                   </span>
                   {' - '}
-                  <span className={awayWin ? 'text-green-600' : 'text-gray-900'}>
+                  <span className={awayWin ? 'text-green-700' : 'text-gray-900'}>
                     {match.away_score}
                   </span>
+                  {match.home_penalties != null &&
+                    match.away_penalties != null && (
+
+                      <div className="mt-2 text-sm text-gray-600 font-medium">
+                        Penalties
+                        <div className="text-lg font-bold text-gray-900">
+                          <span className={homeWin ? 'text-green-700' : 'text-gray-900'}>
+                            {match.home_penalties} 
+                          </span>
+                          {' - '} 
+                          <span className={awayWin ? 'text-green-700' : 'text-gray-900'}>
+                            {match.away_penalties}
+                          </span>
+                        </div>
+                      </div>
+
+                    )}
                 </div>
               ) : (
                 <div className="text-gray-500 font-bold text-sm">VS</div>
@@ -363,8 +396,8 @@ export default function MatchDetails() {
             <div className="flex flex-col items-center w-1/3">
               <Image src={getFlag(awayTeam!)} alt="" width={44} height={44} className="rounded-full" />
               <span 
-                className={`"mt-2 text-sm sm:text-base font-semibold text-gray-900 text-center"
-                ${awayWin ? 'text-green-600' : 'text-gray-900'}
+                className={`"mt-2 text-xs sm:text-base font-semibold text-gray-900 text-center"
+                ${awayWin ? 'text-green-700' : 'text-gray-900'}
                 `}
                 >
                 {awayTeam}
@@ -372,6 +405,7 @@ export default function MatchDetails() {
             </div>
 
           </div>
+
         </div>
       )}
 

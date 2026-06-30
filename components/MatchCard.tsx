@@ -12,6 +12,10 @@ type Match = {
   status: string
   home_score?: number | null
   away_score?: number | null
+
+  home_penalties?: number | null
+  away_penalties?: number | null
+  
   group_name?: string | null
 }
 
@@ -128,6 +132,31 @@ export default function MatchCard({
     active:scale-[0.98] hover:shadow-md cursor-pointer transition
     ${getResultColor()}
   `
+const homeWin =
+    match?.status === 'finished' &&
+    (
+      (match.home_score! > match.away_score!) ||
+
+      (
+        match.home_score === match.away_score &&
+        match.home_penalties != null &&
+        match.away_penalties != null &&
+        match.home_penalties > match.away_penalties
+      )
+    )
+
+  const awayWin =
+    match?.status === 'finished' &&
+    (
+      (match.away_score! > match.home_score!) ||
+
+      (
+        match.home_score === match.away_score &&
+        match.home_penalties != null &&
+        match.away_penalties != null &&
+        match.away_penalties > match.home_penalties
+      )
+    )
 
   return (
     <Link href={`/match/${match.id}`}>
@@ -138,11 +167,13 @@ export default function MatchCard({
           <div className="
             absolute inset-0 rounded-xl
             bg-white/60 backdrop-blur-[1px]
-            flex items-center justify-center
+            text-center mt-2
             text-sm font-semibold text-gray-800
             z-10
           ">
-            🔒 Locked
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
+              🔒 Locked
+            </span>
           </div>
         )}
 
@@ -189,24 +220,60 @@ export default function MatchCard({
               height={32}
               className="rounded-full"
             />
-            <span className="text-xs font-semibold text-gray-900 text-center">
+            <span className={`"mt-2 text-xs sm:text-base font-semibold text-gray-900 text-center"
+                ${homeWin ? 'text-green-700' : 'text-gray-900'}
+                `}>
               {match.home_team}
             </span>
           </div>
 
           {/* SCORE / VS */}
           <div className="text-center">
+
             {match.status === 'finished' ? (
-              <div className="font-bold text-lg sm:text-xl text-gray-900">
-                {match.home_score} - {match.away_score}
-              </div>
+
+              <>
+
+                <div className="font-bold text-lg sm:text-xl text-gray-900">
+                  <span className={homeWin ? 'text-green-700' : 'text-gray-900'}>
+                  {match.home_score}
+                  </span>
+                  {' - '}
+                  <span className={awayWin ? 'text-green-700' : 'text-gray-900'}>
+                  {match.away_score}
+                  </span>
+                </div>
+
+                {match.home_penalties != null &&
+                match.away_penalties != null && (
+
+                  <div className="mt-2 text-sm text-gray-600 font-medium">
+                    Penalties
+                    <div className="text-lg font-bold text-gray-900">
+                      <span className={homeWin ? 'text-green-700' : 'text-gray-900'}>
+                        {match.home_penalties} 
+                      </span>
+                      {' - '} 
+                      <span className={awayWin ? 'text-green-700' : 'text-gray-900'}>
+                        {match.away_penalties}
+                      </span>
+                    </div>
+                  </div>
+
+                )}
+
+              </>
+
             ) : (
+
               <div className="text-gray-400 font-bold text-xs sm:text-sm">
                 VS
               </div>
-            )}
-          </div>
 
+            )}
+
+          </div>
+          
           {/* AWAY */}
           <div className="flex flex-col items-center w-1/3 gap-1">
             <Image
@@ -216,7 +283,10 @@ export default function MatchCard({
               height={32}
               className="rounded-full"
             />
-            <span className="text-xs font-semibold text-gray-900 text-center">
+            <span className={`"mt-2 text-xs sm:text-base font-semibold text-gray-900 text-center"
+                ${awayWin ? 'text-green-700' : 'text-gray-900'}
+                `}
+                >
               {match.away_team}
             </span>
           </div>
